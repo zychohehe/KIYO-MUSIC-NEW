@@ -774,26 +774,6 @@ class MainActivity : ComponentActivity() {
                     },
                 )
 
-                // navbar yang ikut scroll: mengecil dan turun sedikit saat daftar digulir ke bawah, kembali penuh saat digulir ke atas (tidak memakan ruang, tidak menghalangi isi)
-                var navCondensed by remember { mutableStateOf(false) }
-                val navScrollConnection = remember {
-                    object : androidx.compose.ui.input.nestedscroll.NestedScrollConnection {
-                        override fun onPreScroll(
-                            available: androidx.compose.ui.geometry.Offset,
-                            source: androidx.compose.ui.input.nestedscroll.NestedScrollSource,
-                        ): androidx.compose.ui.geometry.Offset {
-                            if (available.y < -6f) navCondensed = true
-                            else if (available.y > 6f) navCondensed = false
-                            return androidx.compose.ui.geometry.Offset.Zero
-                        }
-                    }
-                }
-                val navCondense by animateFloatAsState(
-                    targetValue = if (navCondensed) 1f else 0f,
-                    animationSpec = spring(dampingRatio = 0.8f, stiffness = 420f),
-                    label = "navCondense",
-                )
-
                 LaunchedEffect(navBackStackEntry) {
                     if (inSearchScreen) {
                         // navigation already decoded it, see searchRoute
@@ -1111,13 +1091,9 @@ class MainActivity : ComponentActivity() {
                                             .height(bottomInset + navPadding)
                                             .graphicsLayer {
                                                 val progress = playerBottomSheetState.progress.coerceIn(0f, 1f)
-                                                // gulir ke bawah: bar mengecil ke tengah dan turun sedikit, lalu pulih
-                                                val c = navCondense
-                                                val s = 1f - 0.1f * c
-                                                scaleX = s
-                                                scaleY = s
-                                                translationY = navBarTotalHeight.toPx() * progress + 6.dp.toPx() * c
-                                                alpha = (1f - progress / 0.6f).coerceIn(0f, 1f) * (1f - 0.12f * c)
+                                                // the bar stays put while scrolling, like Discord's; it only moves with the player
+                                                translationY = navBarTotalHeight.toPx() * progress
+                                                alpha = (1f - progress / 0.6f).coerceIn(0f, 1f)
                                             }
                                         // the wide pill shrinks onto the tabs while nothing is playing, read while laying out
                                         val withPlayer = animateFloatAsState(
@@ -1186,7 +1162,6 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier
                                 .fillMaxSize()
                                 .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
-                                .nestedScroll(navScrollConnection)
                         ) {
                             Row(Modifier.fillMaxSize()) {
                                 Box(
