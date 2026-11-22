@@ -4,7 +4,9 @@
 
 <img src="docs/assets/img/logo.svg" alt="Kiyo logo" width="96" height="96" />
 
-# Kiyo
+# Kiyo · 清
+
+🌸 <sub>きよ · 澄んだ音、静かな時間</sub> 🌸
 
 **a sleek, modern music player for Android.**
 open source, packed with features, and it doesn't collect your data.
@@ -52,7 +54,10 @@ open source, packed with features, and it doesn't collect your data.
 
 ## What's new in Kiyo 5.5.0
 
+<sub>新着 · shinchaku</sub>
+
 - **A new name.** The app is now **Kiyo**, renamed everywhere you can see it.
+- **Japanese vibes.** A vermilion (朱色) icon with the white **K** stamp, and a little Japanese in the welcome line.
 - **A new logo.** A clean **K** mark, used for the launcher icon, themed icon, splash screen, navigation and notifications.
 - **A new package id.** Kiyo installs as `com.kiyo.music`, so it sits next to the old app as a separate install.
 - **A cleaner profile.** The developer card now just says *developer*, with a fresh avatar.
@@ -65,6 +70,8 @@ open source, packed with features, and it doesn't collect your data.
 ---
 
 ## Features
+
+<sub>機能 · kinou</sub>
 
 | | |
 |---|---|
@@ -82,6 +89,8 @@ open source, packed with features, and it doesn't collect your data.
 
 ## Install
 
+<sub>インストール</sub>
+
 1. On your phone, open the [latest release](https://github.com/zychohehe/Mochy-Music/releases/latest).
 2. Download the `.apk` that matches your phone. Not sure? Pick **arm64**, that is almost every phone from the last 8 years. The **universal** one works everywhere but is bigger.
 3. Open the downloaded file. Android will ask you to allow installs from your browser or file manager, say yes (you can turn it off again after).
@@ -98,6 +107,8 @@ Updating works the same way: install the new apk over the old one and your libra
 ---
 
 ## Preview
+
+<sub>プレビュー</sub>
 
 <table>
   <tr>
@@ -134,6 +145,8 @@ Updating works the same way: install the new apk over the old one and your libra
 ---
 
 ## FAQ
+
+<sub>よくある質問</sub>
 
 <details>
 <summary><b>Is it safe to log in?</b> (read this before signing in)</summary>
