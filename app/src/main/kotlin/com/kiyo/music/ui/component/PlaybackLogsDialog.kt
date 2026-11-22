@@ -107,6 +107,7 @@ fun PlaybackLogsDialog(
                 }
             } else {
                 LazyColumn(
+                    flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                     state = listState,
                     modifier = Modifier.fillMaxSize(),
                 ) {

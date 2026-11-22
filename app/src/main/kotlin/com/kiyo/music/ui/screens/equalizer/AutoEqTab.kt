@@ -362,7 +362,7 @@ private fun Database(viewModel: AudioLabViewModel, selectedPath: String?, loadin
                         Text(stringResource(R.string.eqx_no_match, query), fontFamily = InterFontFamily, fontSize = 14.sp,
                             color = LabColors.Secondary, modifier = Modifier.align(Alignment.Center))
                     }
-                    LazyColumn(state = listState, modifier = Modifier.fillMaxSize().padding(end = 22.dp)) {
+                    LazyColumn(flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(), state = listState, modifier = Modifier.fillMaxSize().padding(end = 22.dp)) {
                         items(results, key = { it.name }) { model ->
                             ModelRow(
                                 model = model,

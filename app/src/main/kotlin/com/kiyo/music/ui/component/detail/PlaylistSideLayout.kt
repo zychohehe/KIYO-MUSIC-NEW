@@ -147,6 +147,7 @@ internal fun PlaylistSideBySide(
                     SideCover(coverUrl = coverUrl, cover = cover, background = background)
                 }
                 LazyColumn(
+                    flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                     state = lazyListState,
                     contentPadding = PaddingValues(
                         start = coverWidth,

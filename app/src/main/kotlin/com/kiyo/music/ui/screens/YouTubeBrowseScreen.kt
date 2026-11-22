@@ -71,6 +71,7 @@ fun YouTubeBrowseScreen(
     }
 
     LazyVerticalGrid(
+        flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
         columns = GridCells.Adaptive(minSize = GridThumbnailHeight + if (gridItemSize == GridItemSize.BIG) 24.dp else (-24).dp),
         contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
     ) {

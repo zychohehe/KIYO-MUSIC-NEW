@@ -132,6 +132,7 @@ private fun ColumnScope.TransferSheetContent(kind: TransferKind, batch: Transfer
         return
     }
     LazyColumn(
+        flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
         verticalArrangement = Arrangement.spacedBy(10.dp),
         contentPadding = PaddingValues(bottom = 12.dp),
     ) {

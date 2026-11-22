@@ -143,6 +143,7 @@ fun GenreScreen(
     ) {
         Box(modifier = Modifier.fillMaxSize().glassRoot(glassState)) {
             LazyColumn(
+                flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = bottomInset + 24.dp),

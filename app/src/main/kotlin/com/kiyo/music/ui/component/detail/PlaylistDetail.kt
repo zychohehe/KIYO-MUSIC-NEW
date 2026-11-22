@@ -486,6 +486,7 @@ fun PlaylistDetailScaffold(
             }
 
             LazyColumn(
+                flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                 state = lazyListState,
                 contentPadding = listPadding,
                 modifier = Modifier.fillMaxSize(),

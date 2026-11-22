@@ -248,6 +248,7 @@ fun OnlineSearchResult(
             // wide screens show the results two to a row, so the rows aren't mostly empty space
             val columns = if (maxWidth >= 600.dp) 2 else 1
             LazyColumn(
+                flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(

@@ -360,6 +360,7 @@ private fun SearchBrowseContent(
         .calculateBottomPadding()
 
     LazyColumn(
+        flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
         state = listState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
@@ -444,6 +445,7 @@ internal fun SearchActiveContent(
         .calculateBottomPadding()
 
     LazyColumn(
+        flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
         state = listState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(

@@ -103,6 +103,7 @@ internal fun SkinCustomLyrics(lines: List<LyricsEntry>, style: SkinLyricStyle, c
             if (context.preview) state.scrollToItem(target) else state.animateScrollToItem(target)
         }
         LazyColumn(
+            flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
             state = state,
             userScrollEnabled = false,
             contentPadding = PaddingValues(top = top, bottom = (maxHeight - top).coerceAtLeast(0.dp)),

@@ -235,6 +235,7 @@ private fun ManageDownloadsContent(
         Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = 0.12f)))
 
         LazyColumn(
+            flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
             contentPadding = PaddingValues(top = 14.dp, bottom = 12.dp),
             modifier = Modifier.fillMaxWidth().weight(1f),
         ) {

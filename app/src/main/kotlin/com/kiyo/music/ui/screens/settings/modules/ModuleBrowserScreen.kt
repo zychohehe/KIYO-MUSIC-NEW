@@ -106,6 +106,7 @@ fun ModuleBrowserScreen(
     }
 
     LazyColumn(
+        flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
         modifier = Modifier.fillMaxSize().background(Color.Black),
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = top + 12.dp, bottom = 140.dp),
     ) {

@@ -210,7 +210,7 @@ internal fun TvHomeScreen(profile: TvProfile, viewModel: HomeViewModel = hiltVie
                 },
         )
         CompositionLocalProvider(LocalBringIntoViewSpec provides TvColumnPivot) {
-            LazyColumn(state = listState, contentPadding = PaddingValues(bottom = 48.dp), modifier = Modifier.fillMaxSize()) {
+            LazyColumn(flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(), state = listState, contentPadding = PaddingValues(bottom = 48.dp), modifier = Modifier.fillMaxSize()) {
                 item(key = "hero", contentType = "hero") {
                     Box(Modifier.fillMaxWidth().height(heroHeight)) {
                         TvHeroText(

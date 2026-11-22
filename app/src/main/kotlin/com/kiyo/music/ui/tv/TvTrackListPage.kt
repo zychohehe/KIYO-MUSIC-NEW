@@ -135,6 +135,7 @@ internal fun TvTrackListPage(
         }
         CompositionLocalProvider(LocalBringIntoViewSpec provides TvColumnPivot) {
             LazyColumn(
+                flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .fillMaxHeight()

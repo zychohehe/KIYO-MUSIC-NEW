@@ -73,6 +73,7 @@ fun YouTubeArtistMenu(
     val isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 
     LazyColumn(
+        flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
         contentPadding = PaddingValues(
             start = 0.dp,
             top = 0.dp,

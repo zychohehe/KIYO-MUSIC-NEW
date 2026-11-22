@@ -215,6 +215,7 @@ internal fun TvGridScreen(kind: String, viewModel: LibraryHomeViewModel = hiltVi
         Text(title, style = TvText.PageTitle, modifier = Modifier.padding(start = TvSpace.Start, top = TvSpace.Top))
         CompositionLocalProvider(LocalBringIntoViewSpec provides TvColumnPivot) {
             LazyVerticalGrid(
+                flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                 columns = GridCells.Adaptive(TvCardSize),
                 contentPadding = PaddingValues(start = TvSpace.Start, end = TvSpace.End, top = 20.dp, bottom = 40.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),

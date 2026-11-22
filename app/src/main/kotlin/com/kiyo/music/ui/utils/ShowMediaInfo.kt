@@ -85,6 +85,7 @@ fun ShowMediaInfo(videoId: String) {
     val albumArtShape = RoundedCornerShape(24.dp)
 
     LazyColumn(
+        flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
         state = rememberLazyListState(),
         modifier = Modifier
             .fillMaxSize()

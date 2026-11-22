@@ -111,6 +111,7 @@ fun LocalSearchScreen(
     }
 
     LazyColumn(
+        flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
         state = lazyListState,
         contentPadding = LocalPlayerAwareWindowInsets.current
             .only(WindowInsetsSides.Bottom)

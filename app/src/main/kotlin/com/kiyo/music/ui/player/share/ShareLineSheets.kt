@@ -103,6 +103,7 @@ private fun LinePickerContent(session: LyricsShareSession) {
         ShareTitle(stringResource(R.string.share))
         PickedSummary(session)
         LazyColumn(
+            flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
             state = session.choreography.listState,
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(top = 4.dp, bottom = 12.dp),

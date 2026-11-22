@@ -75,6 +75,7 @@ internal fun TvArtistScreen(viewModel: ArtistViewModel = hiltViewModel()) {
         Row(Modifier.fillMaxSize()) {
             CompositionLocalProvider(LocalBringIntoViewSpec provides TvColumnPivot) {
                 LazyColumn(
+                    flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                     modifier = Modifier.width(pageWidth * 0.42f).fillMaxHeight(),
                     contentPadding = PaddingValues(start = TvSpace.Start, top = pageHeight * 0.26f, bottom = 40.dp),
                 ) {
@@ -132,6 +133,7 @@ internal fun TvArtistScreen(viewModel: ArtistViewModel = hiltViewModel()) {
             Spacer(Modifier.width(30.dp))
             CompositionLocalProvider(LocalBringIntoViewSpec provides TvColumnPivot) {
                 LazyColumn(
+                    flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                     contentPadding = PaddingValues(top = pageHeight * 0.5f, end = TvSpace.End, bottom = 48.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),

@@ -46,6 +46,7 @@ fun GridMenu(
     content: LazyGridScope.() -> Unit,
 ) {
     LazyVerticalGrid(
+        flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
         columns = GridCells.Adaptive(minSize = 120.dp),
         modifier = modifier,
         contentPadding = contentPadding,

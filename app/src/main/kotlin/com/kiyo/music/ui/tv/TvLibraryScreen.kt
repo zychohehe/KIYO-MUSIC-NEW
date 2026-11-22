@@ -133,6 +133,7 @@ internal fun TvLibraryScreen(viewModel: LibraryHomeViewModel = hiltViewModel()) 
         val cards = cardsFor(shownTab)
         CompositionLocalProvider(LocalBringIntoViewSpec provides TvColumnPivot) {
             LazyVerticalGrid(
+                flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                 columns = GridCells.Fixed(2),
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(top = TvSpace.Top + 64.dp, bottom = 40.dp),

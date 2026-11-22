@@ -85,6 +85,7 @@ fun LibraryScaffold(
                 .glassRoot(glassState, isActive = { collapseProvider() > 0.01f }),
         ) {
             LazyColumn(
+                flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(

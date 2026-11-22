@@ -65,6 +65,7 @@ package com.kiyo.music.ui.screens
      val distinctItems = remember(items) { items?.distinctBy { it.id } }
 
      LazyVerticalGrid(
+         flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
          columns = GridCells.Adaptive(minSize = GridThumbnailHeight + if (gridItemSize == GridItemSize.BIG) 24.dp else (-24).dp),
          contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
      ) {

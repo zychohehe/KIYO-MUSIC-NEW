@@ -57,6 +57,7 @@ open source, packed with features, and it doesn't collect your data.
 - **A new package id.** Kiyo installs as `com.kiyo.music`, so it sits next to the old app as a separate install.
 - **A cleaner profile.** The developer card now just says *developer*, with a fresh avatar.
 - **Plain version numbers.** Versions show only the number (like `5.5.0`), without the `build` text.
+- **Smoother scrolling.** Lists and grids across the app share one glide-style fling, so a flick coasts further and eases out evenly. The feel is tuned by a single value, `GlideFriction`.
 
 > [!NOTE]
 > Because the package id changed, Kiyo does not share data with the old app. Make a backup in the old app first if you want to move your library.

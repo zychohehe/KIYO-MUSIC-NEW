@@ -200,7 +200,7 @@ fun ListDialog(
                     .padding(vertical = 24.dp)
                     .imePadding(),
             ) {
-                LazyColumn(content = content)
+                LazyColumn(flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(), content = content)
             }
         }
     }

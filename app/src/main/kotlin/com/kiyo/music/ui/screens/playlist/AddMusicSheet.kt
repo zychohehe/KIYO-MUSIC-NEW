@@ -234,6 +234,7 @@ private fun AddMusicContent(playlistId: String, startInLibrary: Boolean, picks: 
         Spacer(Modifier.height(12.dp))
 
         LazyColumn(
+            flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
             state = listState,
             contentPadding = PaddingValues(bottom = 12.dp),
             modifier = Modifier

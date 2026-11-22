@@ -200,6 +200,7 @@ fun YouTubeSelectionSongMenu(
     }
 
     LazyColumn(
+        flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
         contentPadding = PaddingValues(
             start = 0.dp,
             top = 8.dp,

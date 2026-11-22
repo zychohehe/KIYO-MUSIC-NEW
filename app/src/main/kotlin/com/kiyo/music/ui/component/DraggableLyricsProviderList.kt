@@ -62,6 +62,7 @@ fun DraggableLyricsProviderList(
     }
 
     LazyColumn(
+        flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
         state = lazyListState,
         modifier = modifier,
     ) {

@@ -306,6 +306,7 @@ private fun AddToPlaylistContent(
         Spacer(Modifier.height(16.dp))
 
         LazyColumn(
+            flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
             modifier = Modifier.fillMaxWidth(),
             contentPadding =
                 androidx.compose.foundation.layout

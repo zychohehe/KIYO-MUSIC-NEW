@@ -147,7 +147,7 @@ internal fun TvSearchScreen(
             Spacer(Modifier.height(22.dp))
             Text(stringResource(R.string.history), style = TvText.Body)
             Spacer(Modifier.height(6.dp))
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            LazyColumn(flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 items(history, key = { it }) { past ->
                     Text(
                         past,
@@ -173,6 +173,7 @@ internal fun TvSearchScreen(
                     searching -> Text(stringResource(R.string.tv_loading), style = TvText.Body, modifier = Modifier.padding(top = TvSpace.Top + 50.dp))
                     shown != null -> TvSearchResults(shown)
                     else -> LazyVerticalGrid(
+                        flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                         columns = GridCells.Fixed(2),
                         contentPadding = PaddingValues(top = TvSpace.Top + 50.dp, bottom = 40.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -242,7 +243,7 @@ private fun Color.compositeOverDark(): Color = androidx.compose.ui.graphics.lerp
 @Composable
 private fun TvSearchResults(results: List<SearchSummary>) {
     val actions = LocalTvActions.current
-    LazyColumn(contentPadding = PaddingValues(top = TvSpace.Top + 50.dp, bottom = 48.dp)) {
+    LazyColumn(flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(), contentPadding = PaddingValues(top = TvSpace.Top + 50.dp, bottom = 48.dp)) {
         if (results.isEmpty()) {
             item { Text(stringResource(R.string.tv_nothing_found), style = TvText.Body) }
         }

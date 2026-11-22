@@ -211,6 +211,7 @@ fun StatsScreen(navController: NavController) {
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         Box(modifier = Modifier.fillMaxSize().glassRoot(glassState, isActive = { collapse > 0f })) {
             LazyColumn(
+                flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                 state = listState,
                 contentPadding = PaddingValues(top = topInset + 82.dp, bottom = 200.dp),
                 modifier = Modifier.fillMaxSize(),

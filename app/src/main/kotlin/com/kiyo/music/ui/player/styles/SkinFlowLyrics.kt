@@ -39,6 +39,7 @@ internal fun SkinFlowLyrics(lines: List<LyricsEntry>, block: SkinBlock.Lyrics, c
     // lines that aren't sung keep the prefix's room, so a monospace column doesn't jump sideways
     val blank = remember(block.prefix) { " ".repeat(block.prefix.length) }
     LazyColumn(
+        flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
         state = state,
         userScrollEnabled = false,
         contentPadding = PaddingValues(),

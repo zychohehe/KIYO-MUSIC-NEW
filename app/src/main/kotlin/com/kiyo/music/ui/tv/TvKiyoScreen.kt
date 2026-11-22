@@ -100,6 +100,7 @@ internal fun TvKiyoScreen(profile: TvProfile) {
         }
         CompositionLocalProvider(LocalBringIntoViewSpec provides TvColumnPivot) {
             LazyVerticalGrid(
+                flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                 columns = GridCells.Fixed(2),
                 modifier = Modifier.weight(1f).fillMaxHeight(),
                 contentPadding = PaddingValues(top = TvSpace.Top + 6.dp, bottom = 40.dp, start = 6.dp, end = 6.dp),

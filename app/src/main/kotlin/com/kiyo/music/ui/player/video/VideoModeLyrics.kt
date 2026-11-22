@@ -642,6 +642,7 @@ internal fun FollowingLyrics(
 
         ProvideVideoLyricScale {
             LazyColumn(
+                flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                 state = listState,
                 contentPadding = PaddingValues(top = restingOffset, bottom = bottomPadding),
                 userScrollEnabled = userScroll,

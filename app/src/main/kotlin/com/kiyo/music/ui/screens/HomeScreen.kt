@@ -1335,6 +1335,7 @@ fun HomeScreen(
                     com.kiyo.music.ui.component.LocalGridItemPadding provides 0.dp
                 ) {
                     LazyColumn(
+                        flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                         modifier = Modifier.glassRoot(
                             homeGlassState,
                             isActive = { heroGlassActive.value }

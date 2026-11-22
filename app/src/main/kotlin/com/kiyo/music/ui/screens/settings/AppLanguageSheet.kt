@@ -97,6 +97,7 @@ private fun AppLanguagePicker(selected: String, onPick: (String) -> Unit) {
         )
         SheetSearchField(value = query, onValueChange = { query = it }, placeholder = stringResource(R.string.app_language_search))
         LazyColumn(
+            flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(top = 14.dp, bottom = 12.dp + navBottom),
             modifier = Modifier.fillMaxWidth().weight(1f),

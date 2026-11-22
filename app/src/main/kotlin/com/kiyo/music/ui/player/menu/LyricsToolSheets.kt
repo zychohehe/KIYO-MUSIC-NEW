@@ -166,6 +166,7 @@ fun LyricsEditorSheet(onDismiss: () -> Unit) {
                 )
             } else {
                 LazyColumn(
+                    flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(18.dp))
@@ -783,7 +784,7 @@ private fun LanguagePickerSheet(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            LazyColumn(flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(), modifier = Modifier.fillMaxWidth()) {
                 itemsIndexed(filtered, key = { _, item -> item.first }) { _, (code, label) ->
                     val isSelected = code == selected
                     Box(

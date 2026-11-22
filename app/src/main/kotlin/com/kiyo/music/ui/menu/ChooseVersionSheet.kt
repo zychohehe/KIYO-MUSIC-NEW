@@ -116,6 +116,7 @@ private fun ColumnScope.ChooseVersionContent(match: TrackMatch, onDone: () -> Un
     }
 
     LazyColumn(
+        flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
         verticalArrangement = Arrangement.spacedBy(6.dp),
         contentPadding = PaddingValues(bottom = 12.dp),
     ) {

@@ -243,6 +243,7 @@ internal fun SimilarPage(
             BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                 val screenWidth = maxWidth
                 LazyColumn(
+                    flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                     state = listState,
                     contentPadding = LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Bottom).asPaddingValues(),
                     modifier = Modifier.fillMaxSize(),

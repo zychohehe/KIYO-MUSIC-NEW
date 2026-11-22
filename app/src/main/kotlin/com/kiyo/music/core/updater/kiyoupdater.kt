@@ -355,6 +355,7 @@ fun UpdateScreen(navController: NavHostController) {
                 .padding(padding)
         ) {
             LazyColumn(
+                flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally

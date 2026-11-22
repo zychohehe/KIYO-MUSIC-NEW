@@ -342,6 +342,7 @@ internal fun WhatToSyncPage(
         BoxWithConstraints(modifier = Modifier.weight(1f).fillMaxWidth()) {
             val columns = if (maxWidth >= 480.dp) 3 else 2
             LazyVerticalGrid(
+                flingBehavior = com.kiyo.music.ui.utils.rememberGlideFling(),
                 columns = GridCells.Fixed(columns),
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
