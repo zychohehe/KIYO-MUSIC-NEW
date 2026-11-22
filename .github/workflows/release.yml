@@ -124,11 +124,13 @@ jobs:
           cp "$APK" "dist/Kiyo_v${{ needs.meta.outputs.version }}_build${{ needs.meta.outputs.build }}_${{ matrix.abi }}.apk"
           ls -lh dist
 
-      - uses: actions/upload-artifact@v4
+      # archive: false uploads the APK as it is, so the Actions page gives you the .apk itself and not a zip around it
+      - name: Upload APK (not zipped)
+        uses: actions/upload-artifact@v7
         with:
-          name: apk-${{ matrix.abi }}
           path: dist/*.apk
-          retention-days: 1
+          archive: false
+          retention-days: 7
 
   release:
     name: Publish release
@@ -137,9 +139,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v4
+      # unzipped artifacts are named after their file, so take them all
+      - uses: actions/download-artifact@v8
         with:
-          pattern: apk-*
           merge-multiple: true
           path: dist
 

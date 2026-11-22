@@ -418,7 +418,7 @@ private fun RecentSection(state: ProfileMorphState, viewModel: UserProfileViewMo
     ProfileSectionTitle(index = "01", title = stringResource(R.string.profile_listening_to), modifier = Modifier.reveal(state, row = 3))
     val list = songs
     when {
-        list == null -> Spacer(Modifier.height(8 * 60.dp))
+        list == null -> Spacer(Modifier.height(480.dp))
         list.isEmpty() -> Text(
             text = stringResource(R.string.profile_recent_empty),
             style = EmptyStyle,
