@@ -5,6 +5,7 @@ package com.kiyo.music.ui.component
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -563,7 +564,25 @@ fun HomeHopInCard(
         modifier = modifier
             .height(HopInCardHeight)
             .clip(shape)
-            .background(HopInCardBg)
+            // gaya baru: kaca gelap bergradasi, garis tepi tipis, dan tepi menyala saat lagunya sedang aktif
+            .background(
+                Brush.linearGradient(
+                    listOf(
+                        if (isActive) Color(0xFF2A2440) else Color(0xFF232326),
+                        HopInCardBg,
+                    ),
+                ),
+            )
+            .border(
+                width = 1.dp,
+                brush = Brush.linearGradient(
+                    listOf(
+                        Color.White.copy(alpha = if (isActive) 0.34f else 0.14f),
+                        Color.White.copy(alpha = 0.03f),
+                    ),
+                ),
+                shape = shape,
+            )
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,

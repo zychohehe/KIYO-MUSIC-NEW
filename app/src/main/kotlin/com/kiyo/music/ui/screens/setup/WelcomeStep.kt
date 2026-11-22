@@ -4,9 +4,18 @@ package com.kiyo.music.ui.screens.setup
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -87,6 +96,13 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
     ) {
         val layout = remember(maxWidth, maxHeight) { welcomeLayout(maxWidth, maxHeight) }
         val u = layout.unit
+        // petunjuk "ketuk" berdenyut pelan
+        val hintPulse by rememberInfiniteTransition(label = "welcomeHint").animateFloat(
+            initialValue = 0.55f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+            label = "welcomeHintAlpha",
+        )
 
         WelcomeDots(layout.dots)
         WelcomeWords(clock.seconds, layout.wordsSize, layout.wordsTop)
@@ -126,21 +142,44 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
                     translationY = (1f - enter.value) * 18.dp.toPx()
                 },
         ) {
-            Text(
-                text = stringResource(R.string.welcome_to),
-                color = Color(0xFFA7A7A7),
-                fontSize = (26f * u).sp,
-                lineHeight = (30f * u).sp,
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = OnbTitleTracking,
-            )
+            // lencana kecil bergaya kaca di atas sapaan
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(Color.White.copy(alpha = 0.08f))
+                    .border(1.dp, Color.White.copy(alpha = 0.16f), RoundedCornerShape(50))
+                    .padding(horizontal = (12f * u).dp, vertical = (5f * u).dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.welcome_to),
+                    color = Color(0xFFE6E6E6),
+                    fontSize = (15f * u).sp,
+                    lineHeight = (18f * u).sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.6.sp,
+                )
+            }
+            Spacer(Modifier.height((8f * u).dp))
             Text(
                 text = stringResource(R.string.app_name),
-                color = Color.White,
-                fontSize = (58f * u).sp,
-                lineHeight = (60f * u).sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = OnbTitleTracking,
+                style = TextStyle(
+                    brush = Brush.linearGradient(
+                        listOf(Color.White, Color(0xFFD9C9FF), Color(0xFF9DB8FF)),
+                    ),
+                    fontSize = (64f * u).sp,
+                    lineHeight = (66f * u).sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = OnbTitleTracking,
+                ),
+            )
+            // garis aksen di bawah nama aplikasi
+            Box(
+                modifier = Modifier
+                    .padding(top = (6f * u).dp)
+                    .width((56f * u).dp)
+                    .height((4f * u).dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(Brush.horizontalGradient(listOf(Color(0xFFB59CFF), Color(0xFF7FA6FF)))),
             )
         }
 
@@ -161,7 +200,7 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
             )
             Text(
                 text = stringResource(R.string.welcome_tap_anywhere),
-                color = Color(0xFF8C8C8C),
+                color = Color(0xFF8C8C8C).copy(alpha = hintPulse),
                 fontSize = (14f * u).sp,
                 lineHeight = (18f * u).sp,
                 fontWeight = FontWeight.SemiBold,
@@ -239,7 +278,7 @@ private fun welcomeLayout(width: Dp, height: Dp): WelcomeLayout {
         val u = min(w / 393f, h / 820f).coerceIn(0.8f, 1.9f)
         val titleTop = max(64f, 76f * u)
         // big like a wallpaper: she spans the width and is cropped at the hips, under the title
-        val girlTop = max(titleTop + 98f * u, h * 0.25f)
+        val girlTop = max(titleTop + 126f * u, h * 0.27f)
         val girlHeight = min(w * 1.08f / shape, (h - girlTop) * 1.12f)
         val girlWidth = girlHeight * shape
         return WelcomeLayout(
