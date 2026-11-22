@@ -103,6 +103,9 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -774,6 +777,25 @@ class MainActivity : ComponentActivity() {
                     },
                 )
 
+                // the tabs bar (and the mini player riding on it) slides away while a page scrolls down
+                // and comes back as soon as it scrolls up, or when another page opens
+                var navHidden by remember { mutableStateOf(false) }
+                val navHide = animateFloatAsState(
+                    targetValue = if (navHidden) 1f else 0f,
+                    animationSpec = tween(240),
+                    label = "navHideOnScroll",
+                )
+                val navHideConnection = remember {
+                    object : NestedScrollConnection {
+                        override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                            // sideways swipes have no up-down part, and a tiny wobble shouldn't flip it
+                            if (available.y < -6f) navHidden = true else if (available.y > 6f) navHidden = false
+                            return Offset.Zero
+                        }
+                    }
+                }
+                LaunchedEffect(navBackStackEntry) { navHidden = false }
+
                 LaunchedEffect(navBackStackEntry) {
                     if (inSearchScreen) {
                         // navigation already decoded it, see searchRoute
@@ -1077,7 +1099,7 @@ class MainActivity : ComponentActivity() {
                                                 }
                                                 .graphicsLayer {
                                                     val progress = playerBottomSheetState.progress.coerceIn(0f, 1f)
-                                                    translationY = navBarTotalHeight.toPx() * progress
+                                                    translationY = (navBarTotalHeight + 40.dp).toPx() * (progress + (1f - progress) * navHide.value)
                                                 }
                                         )
 
@@ -1091,8 +1113,9 @@ class MainActivity : ComponentActivity() {
                                             .height(bottomInset + navPadding)
                                             .graphicsLayer {
                                                 val progress = playerBottomSheetState.progress.coerceIn(0f, 1f)
-                                                // the bar stays put while scrolling, like Discord's; it only moves with the player
-                                                translationY = navBarTotalHeight.toPx() * progress
+                                                // the bar slides down when a page scrolls down and back up when it scrolls up;
+                                                // opening the player takes it away too
+                                                translationY = navBarTotalHeight.toPx() * (progress + (1f - progress) * navHide.value)
                                                 alpha = (1f - progress / 0.6f).coerceIn(0f, 1f)
                                             }
                                         // the wide pill shrinks onto the tabs while nothing is playing, read while laying out
@@ -1117,7 +1140,15 @@ class MainActivity : ComponentActivity() {
                                                 state = playerBottomSheetState,
                                                 navController = navController,
                                                 pureBlack = pureBlack,
-                                                modifier = Modifier.launchRise(order = 3),
+                                                modifier = Modifier
+                                                    .launchRise(order = 3)
+                                                    .graphicsLayer {
+                                                        // the mini player follows the tabs down, to just above the screen's bottom edge
+                                                        if (wideBar == null) {
+                                                            val progress = playerBottomSheetState.progress.coerceIn(0f, 1f)
+                                                            translationY = navPadding.toPx() * navHide.value * (1f - progress)
+                                                        }
+                                                    },
                                             )
                                         }
 
@@ -1162,6 +1193,7 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier
                                 .fillMaxSize()
                                 .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
+                                .nestedScroll(navHideConnection)
                         ) {
                             Row(Modifier.fillMaxSize()) {
                                 Box(

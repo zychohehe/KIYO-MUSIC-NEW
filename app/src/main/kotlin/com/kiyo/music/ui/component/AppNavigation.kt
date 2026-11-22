@@ -49,6 +49,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.layout.size
 import com.kiyo.music.LocalGlassState
 
@@ -254,6 +259,8 @@ fun AppNavigationBar(
     val pill = rememberNavPill(selectedIndex)
     // a look's glass can draw its own edge and its own pill, and then kiyo leaves its hairline, shadow or highlight out
     val moduleGlass = rememberChromeModuleGlass()
+    // the lit tab's colour: the theme's accent, pushed toward white so it reads on the dark glass
+    val litTint = lerp(MaterialTheme.colorScheme.primary, Color.White, 0.35f)
     val density = LocalDensity.current
     val glassPill = remember(pill, tabCount, density) {
         { bar: Size -> pill.forGlass(bar, with(density) { NavRowPadding.toPx() }, tabCount, density) }
@@ -288,6 +295,7 @@ fun AppNavigationBar(
                     .fillMaxSize()
                     .padding(horizontal = NavRowPadding)
                     .navHighlight(pill, tabCount) { moduleGlass?.drawsPill != true }
+                    .navBeam(pill, tabCount, litTint)
                     .navPillDrag(pill, tabCount, selectedIndex) { index ->
                         navigationItems.getOrNull(index)?.let { onItemClick(it, index == selectedIndex) }
                     },
@@ -301,11 +309,39 @@ fun AppNavigationBar(
                         isSelected = screen.route == selectedTabRoute,
                         onItemClick = onItemClick,
                         onDoubleTap = onSearchDoubleTap.takeIf { screen == Screens.Search },
+                        litTint = litTint,
                     )
                 }
             }
         }
     }
+}
+
+/**
+ * The new bar's mark for the lit tab: a short glowing beam on the bar's top edge and a soft wash of
+ * [color] rising from the bottom under it. Drawn from the pill's springs, so it slides and swells
+ * with the pill and never recomposes the bar.
+ */
+private fun Modifier.navBeam(pill: NavPillState, tabCount: Int, color: Color): Modifier = drawBehind {
+    val rect = pill.rect(size, tabCount, this) ?: return@drawBehind
+    val shown = pill.shown.value
+    val lift = pill.lift.value
+    val radius = rect.width * (0.85f + 0.25f * lift)
+    drawCircle(
+        brush = Brush.radialGradient(listOf(color.copy(alpha = 0.38f), Color.Transparent), center = Offset(rect.center.x, size.height), radius = radius),
+        radius = radius,
+        center = Offset(rect.center.x, size.height),
+        alpha = shown,
+    )
+    val beamWidth = rect.width * (0.34f + 0.1f * lift)
+    val beamThick = 3.dp.toPx()
+    drawRoundRect(
+        color = color,
+        topLeft = Offset(rect.center.x - beamWidth / 2f, 1.dp.toPx()),
+        size = Size(beamWidth, beamThick),
+        cornerRadius = CornerRadius(beamThick / 2f),
+        alpha = shown,
+    )
 }
 
 /**
@@ -334,6 +370,7 @@ internal fun RowScope.NavTab(
     isSelected: Boolean,
     onItemClick: (Screens, Boolean) -> Unit,
     onDoubleTap: (() -> Unit)?,
+    litTint: Color = Color.White,
 ) {
     val viewConfiguration = LocalViewConfiguration.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -366,9 +403,9 @@ internal fun RowScope.NavTab(
         contentAlignment = Alignment.Center
     ) {
         if (screen == Screens.Library) {
-            LibraryDownloadIcon { TabIcons(screen, unlitIcon, litIcon, iconSize) { lit.value } }
+            LibraryDownloadIcon { TabIcons(screen, unlitIcon, litIcon, iconSize, litTint) { lit.value } }
         } else {
-            TabIcons(screen, unlitIcon, litIcon, iconSize) { lit.value }
+            TabIcons(screen, unlitIcon, litIcon, iconSize, litTint) { lit.value }
         }
     }
 }
@@ -380,6 +417,7 @@ private fun TabIcons(
     unlitIcon: androidx.compose.ui.graphics.painter.Painter,
     litIcon: androidx.compose.ui.graphics.painter.Painter,
     iconSize: androidx.compose.ui.unit.Dp,
+    litTint: Color,
     lit: () -> Float,
 ) {
     Box(contentAlignment = Alignment.Center) {
@@ -407,7 +445,7 @@ private fun TabIcons(
             Icon(
                 painter = litIcon,
                 contentDescription = null,
-                tint = Color.White,
+                tint = litTint,
                 modifier = Modifier
                     .size(iconSize)
                     .graphicsLayer {
@@ -418,7 +456,7 @@ private fun TabIcons(
         }
         Text(
             text = stringResource(screen.titleId),
-            color = Color.White,
+            color = litTint,
             fontSize = 10.sp,
             fontWeight = FontWeight.SemiBold,
             letterSpacing = (-0.1).sp,

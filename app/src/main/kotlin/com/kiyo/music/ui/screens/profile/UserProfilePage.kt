@@ -8,12 +8,11 @@
 package com.kiyo.music.ui.screens.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -58,7 +57,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -74,7 +72,6 @@ import com.kiyo.music.ui.component.HomeCardHighlight
 import com.kiyo.music.ui.component.HomeCardSpacing
 import com.kiyo.music.ui.component.HomeContentInset
 import com.kiyo.music.ui.component.HomeCoverCard
-import com.kiyo.music.ui.component.HomeSectionTitle
 import com.kiyo.music.ui.component.LikedSongsThumbnail
 import com.kiyo.music.ui.component.LocalMenuState
 import com.kiyo.music.ui.component.LocalZoomOutOverlayState
@@ -115,10 +112,16 @@ internal val ProfileTagStyle = TextStyle(
 internal fun profileTag(cardNumber: String) = "PROFILE USR#$cardNumber"
 
 private val NameTagGap = 10.dp
-private val PillGrey = Color(0xFF2E2E2E)
 private val DividerGrey = Color(0xFF262626)
-private val ListensCardGrey = Color(0xFF111111)
 private val FigureGrey = Color(0xFF707070)
+
+private val ProfileLabelStyle = TextStyle(
+    fontFamily = FontFamily.Monospace,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 10.5.sp,
+    letterSpacing = 0.08.em,
+    color = Color(0xFF8A8A8A),
+)
 
 private val EmptyStyle = TextStyle(
     fontFamily = InterFontFamily,
@@ -203,21 +206,12 @@ internal fun UserProfilePage(
                 .reveal(state, row = 0),
         )
         Spacer(Modifier.height(40.dp))
-        Box(
-            modifier = Modifier
-                .reveal(state, row = 1)
-                .padding(horizontal = 30.dp)
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(DividerGrey),
-        )
-        Spacer(Modifier.height(24.dp))
         ListensRow(state, viewModel, onOpenStats = { navController.navigate("stats") })
-        Spacer(Modifier.height(30.dp))
+        Spacer(Modifier.height(36.dp))
         RecentSection(state, viewModel, navController)
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(32.dp))
         PlaylistsSection(state, viewModel, navController)
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(32.dp))
         ArtistsSection(state, viewModel, navController)
         // room to scroll the last row clear of the mini player and the nav bar
         Spacer(Modifier.height(180.dp))
@@ -274,64 +268,49 @@ private fun EditProfilePill(onClick: () -> Unit, modifier: Modifier = Modifier) 
         ),
         modifier = modifier
             .clip(CircleShape)
-            .background(PillGrey)
+            .border(1.dp, Color(0xFF3A3A3A), CircleShape)
             .clickable(onClick = onClick)
-            .padding(horizontal = 15.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
     )
 }
 
 // ---- Total listens ----------------------------------------------------------------------------
+// flat: no card behind it. Each span is one line, its name on the left and its two figures on the
+// right, with a hairline between the lines.
 
 @Composable
 private fun ListensRow(state: ProfileMorphState, viewModel: UserProfileViewModel, onOpenStats: () -> Unit) {
     val totals by viewModel.listens.collectAsState()
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        // the next card peeks in from the right, so it's clear the row scrolls
-        val cardWidth = (maxWidth - HomeContentInset - 66.dp).coerceIn(240.dp, 380.dp)
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            modifier = Modifier
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = HomeContentInset),
-        ) {
-            (totals ?: ListenTotal.Placeholder).forEachIndexed { index, total ->
-                ListensCard(
-                    total = total,
-                    width = cardWidth,
-                    onClick = onOpenStats,
-                    modifier = Modifier.reveal(state, row = 2, order = index),
-                )
-            }
+    Column(Modifier.fillMaxWidth().padding(horizontal = HomeContentInset)) {
+        Text(
+            text = stringResource(R.string.profile_total_listens).uppercase(),
+            style = ProfileLabelStyle,
+            modifier = Modifier.reveal(state, row = 2).padding(bottom = 6.dp),
+        )
+        (totals ?: ListenTotal.Placeholder).forEachIndexed { index, total ->
+            ListensLine(
+                total = total,
+                onClick = onOpenStats,
+                modifier = Modifier.reveal(state, row = 2, order = index),
+            )
         }
     }
 }
 
 @Composable
-private fun ListensCard(total: ListenTotal, width: Dp, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun ListensLine(total: ListenTotal, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val (timeValue, timeUnit) = total.timeFigure()
-    Column(
-        modifier = modifier
-            .width(width)
-            .clip(RoundedCornerShape(18.dp))
-            .background(ListensCardGrey)
-            .clickable(onClick = onClick)
-            .padding(start = 22.dp, end = 16.dp, top = 18.dp, bottom = 14.dp),
-    ) {
-        Row {
-            Text(
-                text = stringResource(R.string.profile_total_listens),
-                style = TextStyle(fontFamily = InterFontFamily, fontWeight = FontWeight.Bold, fontSize = 17.sp, letterSpacing = (-0.04).em, color = Color.White),
-                modifier = Modifier.alignByBaseline(),
-            )
-            Spacer(Modifier.width(6.dp))
+    Column(modifier = modifier.clickable(onClick = onClick)) {
+        Box(Modifier.fillMaxWidth().height(1.dp).background(DividerGrey))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp),
+        ) {
             Text(
                 text = total.label,
-                style = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 9.5.sp, color = Color(0xFF8A8A8A)),
-                modifier = Modifier.alignByBaseline(),
+                style = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 10.5.sp, color = Color(0xFF8A8A8A)),
+                modifier = Modifier.weight(0.8f),
             )
-        }
-        Spacer(Modifier.height(4.dp))
-        Row {
             ListensFigure(total.songs.toString(), pluralStringResource(R.plurals.profile_unit_songs, total.songs), Modifier.weight(1f))
             ListensFigure(timeValue, timeUnit, Modifier.weight(1f))
         }
@@ -350,17 +329,17 @@ private fun ListensFigure(value: String, unit: String, modifier: Modifier = Modi
     Row(verticalAlignment = Alignment.Bottom, modifier = modifier) {
         OdometerNumber(
             value = value,
-            fontSize = figureSp(46f * k),
+            fontSize = figureSp(30f * k),
             fontWeight = FontWeight.Bold,
             fontFamily = InterFontFamily,
-            color = FigureGrey,
-            letterSpacing = (-2).sp,
+            color = Color.White,
+            letterSpacing = (-1).sp,
         )
         Text(
             text = unit,
-            style = TextStyle(fontFamily = InterFontFamily, fontWeight = FontWeight.Bold, fontSize = figureSp(19f * k), letterSpacing = (-0.6).sp, color = FigureGrey),
+            style = TextStyle(fontFamily = InterFontFamily, fontWeight = FontWeight.Bold, fontSize = figureSp(13f * k), letterSpacing = (-0.4).sp, color = FigureGrey),
             maxLines = 1,
-            modifier = Modifier.padding(start = 4.dp, bottom = (7 * k).dp),
+            modifier = Modifier.padding(start = 4.dp, bottom = (4 * k).dp),
         )
     }
 }
@@ -376,10 +355,31 @@ private fun ListenTotal.timeFigure(): Pair<String, String> {
 
 // ---- Rows of covers ---------------------------------------------------------------------------
 
-/** A titled row of covers, the same cards and spacing as Home. */
+/** A section heading in the profile's own style: a small index, the title in big type, a hairline over it. */
+@Composable
+private fun ProfileSectionTitle(index: String, title: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier.fillMaxWidth().padding(horizontal = HomeContentInset)) {
+        Box(Modifier.fillMaxWidth().height(1.dp).background(DividerGrey))
+        Spacer(Modifier.height(14.dp))
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(text = index, style = ProfileLabelStyle, modifier = Modifier.padding(bottom = 4.dp))
+            Spacer(Modifier.width(10.dp))
+            Text(
+                text = title,
+                style = TextStyle(fontFamily = InterFontFamily, fontWeight = FontWeight.Bold, fontSize = 24.sp, letterSpacing = (-0.05).em, color = Color.White),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Spacer(Modifier.height(14.dp))
+    }
+}
+
+/** A titled row of covers. */
 @Composable
 private fun <T> ProfileSection(
     title: String,
+    index: String,
     state: ProfileMorphState,
     row: Int,
     items: List<T>?,
@@ -387,7 +387,7 @@ private fun <T> ProfileSection(
     emptyText: String,
     card: @Composable (item: T, order: Int) -> Unit,
 ) {
-    HomeSectionTitle(title = title, modifier = Modifier.reveal(state, row))
+    ProfileSectionTitle(index = index, title = title, modifier = Modifier.reveal(state, row))
     when {
         // not loaded yet: hold the row's height so nothing under it jumps when it arrives
         items == null -> Spacer(Modifier.height(homeCardSize() + 44.dp))
@@ -414,43 +414,70 @@ private fun RecentSection(state: ProfileMorphState, viewModel: UserProfileViewMo
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
     val playing by playerConnection.mediaMetadata.collectAsState()
-    val isPlaying by playerConnection.isPlaying.collectAsState()
 
-    ProfileSection(
-        title = stringResource(R.string.profile_listening_to),
-        state = state,
-        row = 3,
-        items = songs,
-        key = { it.id },
-        emptyText = stringResource(R.string.profile_recent_empty),
-    ) { song, order ->
-        val active = song.id == playing?.id
-        HomeCoverCard(
-            title = song.title,
-            subtitle = song.artists.joinToString(", ") { it.name },
-            thumbnailUrl = song.thumbnailUrl,
-            isActive = active,
-            isPlaying = active && isPlaying,
-            modifier = Modifier
-                .reveal(state, row = 3, order = order)
-                .combinedClickable(
-                    interactionSource = null,
-                    indication = HomeCardHighlight,
-                    onClick = {
-                        if (song.id == playing?.id) {
-                            playerConnection.togglePlayPause()
-                        } else {
-                            playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()))
-                        }
-                    },
-                    onLongClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        menuState.show {
-                            SongMenu(originalSong = song, navController = navController, onDismiss = menuState::dismiss)
-                        }
-                    },
-                ),
+    ProfileSectionTitle(index = "01", title = stringResource(R.string.profile_listening_to), modifier = Modifier.reveal(state, row = 3))
+    val list = songs
+    when {
+        list == null -> Spacer(Modifier.height(8 * 60.dp))
+        list.isEmpty() -> Text(
+            text = stringResource(R.string.profile_recent_empty),
+            style = EmptyStyle,
+            modifier = Modifier.reveal(state, row = 3, order = 1).padding(horizontal = HomeContentInset, vertical = 6.dp),
         )
+        else -> Column(Modifier.fillMaxWidth()) {
+            list.take(8).forEachIndexed { order, song ->
+                val active = song.id == playing?.id
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .reveal(state, row = 3, order = order)
+                        .fillMaxWidth()
+                        .combinedClickable(
+                            onClick = {
+                                if (active) {
+                                    playerConnection.togglePlayPause()
+                                } else {
+                                    playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()))
+                                }
+                            },
+                            onLongClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                menuState.show {
+                                    SongMenu(originalSong = song, navController = navController, onDismiss = menuState::dismiss)
+                                }
+                            },
+                        )
+                        .padding(horizontal = HomeContentInset, vertical = 6.dp),
+                ) {
+                    Text(
+                        text = if (active) "\u25B6" else "%02d".format(order + 1),
+                        style = ProfileLabelStyle.copy(color = if (active) Color.White else Color(0xFF5A5A5A)),
+                        modifier = Modifier.width(28.dp),
+                    )
+                    AsyncImage(
+                        model = song.thumbnailUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(48.dp).clip(RoundedCornerShape(6.dp)).background(ProfilePhotoGrey),
+                    )
+                    Spacer(Modifier.width(14.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            text = song.title,
+                            style = TextStyle(fontFamily = InterFontFamily, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, letterSpacing = (-0.02).em, color = if (active) Color.White else Color(0xFFE6E6E6)),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = song.artists.joinToString(", ") { it.name },
+                            style = TextStyle(fontFamily = InterFontFamily, fontWeight = FontWeight.Medium, fontSize = 12.5.sp, color = Color(0xFF8A8A8A)),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -464,6 +491,7 @@ private fun PlaylistsSection(state: ProfileMorphState, viewModel: UserProfileVie
 
     ProfileSection(
         title = stringResource(R.string.profile_your_playlists),
+        index = "02",
         state = state,
         row = 4,
         items = entries,
@@ -517,6 +545,7 @@ private fun ArtistsSection(state: ProfileMorphState, viewModel: UserProfileViewM
 
     ProfileSection(
         title = stringResource(R.string.profile_top_artists),
+        index = "03",
         state = state,
         row = 5,
         items = artists,
