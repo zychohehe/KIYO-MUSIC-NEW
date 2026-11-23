@@ -854,8 +854,15 @@ fun LyricsScreen(
                         provider != com.kiyo.music.lyrics.LyricsHelper.NoConnectionProvider
                     ) {
                         item(key = "source", contentType = "source") {
+                            // read from the saved lyrics themselves (not the displayed lines, which carry guessed word timing)
+                            val sourceSync by produceState<LyricsUtils.SyncKind?>(null, lyricsEntity?.lyrics) {
+                                value = lyricsEntity?.lyrics?.let { raw ->
+                                    kotlinx.coroutines.withContext(Dispatchers.Default) { runCatching { LyricsUtils.syncKind(raw) }.getOrNull() }
+                                }
+                            }
                             LyricsSourceFooter(
                                 provider = provider,
+                                syncKind = sourceSync,
                                 onSwitchSource = onSwitchSource,
                                 modifier = Modifier
                                     .graphicsLayer {

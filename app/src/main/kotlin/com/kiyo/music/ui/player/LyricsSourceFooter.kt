@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import com.kiyo.music.R
 import com.kiyo.music.lyrics.EmbeddedLyrics
 import com.kiyo.music.lyrics.LyricsProviderRegistry
+import com.kiyo.music.lyrics.LyricsUtils
 import com.kiyo.music.ui.theme.InterFontFamily
 import com.kiyo.music.ui.utils.safeOpenUri
 import com.kiyo.music.viewmodels.LyricsMenuViewModel
@@ -79,6 +80,8 @@ internal fun LyricsSourceFooter(
     provider: String,
     onSwitchSource: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    /** How finely the source timed these lyrics, so it is clear what is real timing and what is guessed. */
+    syncKind: LyricsUtils.SyncKind? = null,
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -97,6 +100,12 @@ internal fun LyricsSourceFooter(
                 SwitchSourceButton(onClick = onSwitchSource)
             }
         }
+        when (syncKind) {
+            LyricsUtils.SyncKind.WORD -> stringResource(R.string.ps_lyrics_word_synced)
+            LyricsUtils.SyncKind.LINE -> stringResource(R.string.ps_lyrics_line_synced)
+            LyricsUtils.SyncKind.PLAIN -> stringResource(R.string.ps_lyrics_plain)
+            else -> null
+        }?.let { LabeledText(label = it, value = null) }
         if (project != null) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 LabeledText(label = project.name, value = null)
