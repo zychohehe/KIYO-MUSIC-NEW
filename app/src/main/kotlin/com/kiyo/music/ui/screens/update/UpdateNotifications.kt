@@ -1,4 +1,4 @@
-// update notifications, at most three per release, riding the launch-time release check with no background job (see docs/notes/update.md)
+// update notifications, at most three per release, posted by the launch-time release check and by UpdateCheckWorker (every 6 hours, app closed or not)
 
 package com.kiyo.music.ui.screens.update
 
@@ -107,7 +107,6 @@ private fun postNotification(context: Context, release: GithubRelease): Boolean 
         .setStyle(NotificationCompat.BigTextStyle().bigText(summary))
         .setContentIntent(pending)
         .setAutoCancel(true)
-        .setOnlyAlertOnce(true)
         .build()
 
     return runCatching { NotificationManagerCompat.from(context).notify(NotificationId, notification) }.isSuccess

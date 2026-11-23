@@ -20,6 +20,8 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import com.kiyo.music.db.MusicDatabase
 import com.kiyo.music.extensions.currentMetadata
+import com.kiyo.music.db.entities.LyricsEntity
+import com.kiyo.music.lyrics.LyricsAutoSync
 import com.kiyo.music.lyrics.LyricsUtils
 import com.kiyo.music.lyrics.VideoLyricsSync
 import com.kiyo.music.extensions.getCurrentQueueIndex
@@ -67,6 +69,10 @@ class PlayerConnection(
         private const val TAG = "PlayerConnection"
         private const val PLAYER_INIT_TIMEOUT_MS = 5000L
         private const val VideoLyricsSyncDelayMs = 1_500L
+        private const val AutoSyncSettleMs = 6_000L
+        private const val AutoSyncPrefs = "lyrics_auto_sync"
+        private const val AutoSyncDone = "done"
+        private const val AutoSyncRemember = 3_000
     }
 
     // its own job under the parent's, so dispose() can stop the pollers and flows this connection started
@@ -197,7 +203,46 @@ class PlayerConnection(
                         .onFailure { if (it is kotlinx.coroutines.CancellationException) throw it else reportException(it) }
                 }
         }
+        // every timed song gets its lyrics lined up with the singing on its own, once, so nobody has to open the offset sheet
+        scope.launch(kotlinx.coroutines.Dispatchers.Default) {
+            combine(mediaMetadata.map { it?.id }.distinctUntilChanged(), currentLyrics.map { it?.lyrics }.distinctUntilChanged()) { id, text -> id to text }
+                .collectLatest { (id, text) ->
+                    if (id == null || text.isNullOrBlank() || text == LyricsEntity.LYRICS_NOT_FOUND) return@collectLatest
+                    // a song skipped straight past is never listened to; this also lets the video sync above go first
+                    delay(AutoSyncSettleMs)
+                    runCatching { autoSyncLyricsOnce(id, text) }
+                        .onFailure { if (it is kotlinx.coroutines.CancellationException) throw it else reportException(it) }
+                }
+        }
     }
+
+    /**
+     * Auto offset for the song that's playing, once per song and per set of lyrics. It leaves alone a song that already has
+     * an offset (set by hand, by an earlier sync or by the video sync) and plain text lyrics, and only saves a match it is sure of.
+     */
+    private suspend fun autoSyncLyricsOnce(songId: String, rawLyrics: String) {
+        val prefs = context.getSharedPreferences(AutoSyncPrefs, Context.MODE_PRIVATE)
+        val key = "$songId:${rawLyrics.hashCode()}"
+        if (prefs.getStringSet(AutoSyncDone, emptySet())?.contains(key) == true) return
+        if ((database.song(songId).first()?.song?.lyricsOffset ?: 0) != 0) return
+        val lines = LyricsUtils.parseLyrics(rawLyrics).takeIf { it.isNotEmpty() && !LyricsUtils.isUnsynced(it) } ?: return
+        // it listens to the stream that is playing, so wait until this song really is
+        isPlaying.first { it }
+        val busy = service.lyricsAutoSync.state.value
+        if (busy is LyricsAutoSync.State.Listening || busy is LyricsAutoSync.State.Matching) return
+        val started = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+            if (service.player.currentMediaItem?.mediaId != songId) false
+            else {
+                service.autoSyncLyrics(lines, 0, automatic = true)
+                true
+            }
+        }
+        if (!started) return
+        // remembered once it has started, so a song that can't be matched isn't listened to again on every play
+        val done = (prefs.getStringSet(AutoSyncDone, emptySet()) ?: emptySet()).toMutableList().apply { add(key) }.takeLast(AutoSyncRemember)
+        prefs.edit().putStringSet(AutoSyncDone, done.toSet()).apply()
+    }
+
     val currentFormat =
         mediaMetadata.flatMapLatest { mediaMetadata ->
             database.format(mediaMetadata?.id)

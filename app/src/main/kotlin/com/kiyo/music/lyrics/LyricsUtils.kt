@@ -411,7 +411,25 @@ object LyricsUtils {
         } else {
             parseStandardLyrics(lines)
         }
-        return fixWordSpacing(parsed)
+        // the file's own [offset:+500] tag used to be thrown away, so every song that carries one was off by that much
+        val tagOffsetMs = decodedLyrics.lineSequence()
+            .firstNotNullOfOrNull { LRC_OFFSET_TAG_REGEX.matchEntire(it.trim())?.groupValues?.get(1)?.toLongOrNull() }
+            ?: 0L
+        return shiftByOffsetTag(fixWordSpacing(parsed), tagOffsetMs)
+    }
+
+    // [offset:+500] means "show every line 500 ms sooner" (the LRC convention), so the times move earlier by that much
+    private val LRC_OFFSET_TAG_REGEX = "\\[offset:\\s*([+-]?\\d+)\\s*\\]".toRegex(RegexOption.IGNORE_CASE)
+
+    private fun shiftByOffsetTag(entries: List<LyricsEntry>, offsetMs: Long): List<LyricsEntry> {
+        if (offsetMs == 0L || entries.isEmpty()) return entries
+        val sec = offsetMs / 1000.0
+        fun List<WordTimestamp>?.shifted() = this?.map {
+            it.copy(startTime = (it.startTime - sec).coerceAtLeast(0.0), endTime = (it.endTime - sec).coerceAtLeast(0.0))
+        }
+        return entries.map { e ->
+            e.copy(time = (e.time - offsetMs).coerceAtLeast(0L), words = e.words.shifted(), syllables = e.syllables.shifted())
+        }
     }
 
     // the last few songs' parsed lines, never handed out themselves, since each caller fills its own reading flows

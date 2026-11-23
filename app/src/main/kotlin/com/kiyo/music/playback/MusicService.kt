@@ -632,12 +632,17 @@ class MusicService :
     }
 
     /** Lines the playing song's lyrics up with its singing: see [com.kiyo.music.lyrics.LyricsAutoSync]. */
-    fun autoSyncLyrics(lines: List<com.kiyo.music.lyrics.LyricsEntry>, currentOffsetMs: Int) {
+    fun autoSyncLyrics(lines: List<com.kiyo.music.lyrics.LyricsEntry>, currentOffsetMs: Int, automatic: Boolean = false) {
         val item = player.currentMediaItem ?: return
+        // a sync nobody asked for says nothing when it ends, and only saves a match it is sure of
+        silentSyncSongId = if (automatic) item.mediaId else null
         val (uri, key) = lyricsAudioSource(item)
         val durationMs = player.duration.takeIf { it != C.TIME_UNSET && it > 0 }
             ?: player.currentMetadata?.duration?.times(1_000L) ?: 0L
-        lyricsAutoSync.start(item.mediaId, uri, key, durationMs, lines, currentOffsetMs)
+        lyricsAutoSync.start(
+            item.mediaId, uri, key, durationMs, lines, currentOffsetMs,
+            minConfidence = if (automatic) com.kiyo.music.lyrics.LyricsAutoSync.SureConfidence else com.kiyo.music.lyrics.LyricsAutoSync.MinConfidence,
+        )
     }
 
     /**
@@ -655,7 +660,11 @@ class MusicService :
     }
 
     /** A sync that finished with its sheet closed says how it went in the banner. */
+    @Volatile
+    private var silentSyncSongId: String? = null
+
     private fun announceLyricsSync(state: com.kiyo.music.lyrics.LyricsAutoSync.State) {
+        if (state.songId == silentSyncSongId) return
         val text = when (state) {
             is com.kiyo.music.lyrics.LyricsAutoSync.State.Synced -> "Lyrics synced to the singing"
             is com.kiyo.music.lyrics.LyricsAutoSync.State.Failed -> state.message

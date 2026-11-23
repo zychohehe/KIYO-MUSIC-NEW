@@ -30,10 +30,11 @@ on:
 permissions:
   contents: write
 
-# a newer push replaces a build that is still running
+# a newer push to main replaces a nightly that is still running, but a stable (tag) build is never cancelled:
+# every ref gets its own group, so a push to main can't kill the build of a v5.6.1 tag
 concurrency:
-  group: release
-  cancel-in-progress: true
+  group: release-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 env:
   # build numbers continue from the version in app/build.gradle.kts, +1 per workflow run
@@ -57,7 +58,14 @@ jobs:
           INPUT_STABLE: ${{ inputs.stable }}
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          BASE=$(grep -oP 'versionName = "\K[0-9]+\.[0-9]+\.[0-9]+' app/build.gradle.kts | head -1)
+          GRADLE_BASE=$(grep -oP 'versionName = "\K[0-9]+\.[0-9]+\.[0-9]+' app/build.gradle.kts | head -1)
+          BASE="$GRADLE_BASE"
+          # nightlies build on top of whichever is higher: the version in build.gradle or the newest stable tag, so
+          # nobody has to remember to raise versionName after a stable release (5.6.1 stable -> nightlies 5.6.1.1, 5.6.1.2, ...)
+          LATEST_STABLE=$(git ls-remote --tags --refs origin 'refs/tags/v*' | sed 's#.*refs/tags/v##' | grep -P '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1 || true)
+          if [ -n "$LATEST_STABLE" ] && [ "$(printf '%s\n%s\n' "$BASE" "$LATEST_STABLE" | sort -V | tail -1)" = "$LATEST_STABLE" ]; then
+            BASE="$LATEST_STABLE"
+          fi
           STABLE=false
           VERSION=""
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
@@ -65,7 +73,7 @@ jobs:
             VERSION=$(echo "${GITHUB_REF_NAME#v}" | grep -oP '^[0-9]+\.[0-9]+\.[0-9]+' || true)
           elif [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$INPUT_STABLE" = "true" ]; then
             STABLE=true
-            VERSION="${INPUT_VERSION:-$BASE}"
+            VERSION="${INPUT_VERSION:-$GRADLE_BASE}"
           fi
           if [ "$STABLE" = "true" ]; then
             if ! echo "$VERSION" | grep -qP '^[0-9]+\.[0-9]+\.[0-9]+$'; then

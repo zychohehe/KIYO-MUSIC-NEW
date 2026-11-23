@@ -85,12 +85,13 @@ class LyricsAutoSync(
         durationMs: Long,
         lines: List<LyricsEntry>,
         previousOffsetMs: Int,
+        minConfidence: Float = MinConfidence,
     ) {
         job?.cancel()
         _state.value = State.Listening(songId, 0f)
         job = scope.launch {
             val result = try {
-                withTimeoutOrNull(TimeoutMs) { sync(songId, uri, cacheKey, durationMs, lines, previousOffsetMs) }
+                withTimeoutOrNull(TimeoutMs) { sync(songId, uri, cacheKey, durationMs, lines, previousOffsetMs, minConfidence) }
                     ?: State.Failed(songId, "Listening took too long. Check your connection and try again.")
             } catch (e: CancellationException) {
                 throw e
@@ -110,6 +111,7 @@ class LyricsAutoSync(
         durationMs: Long,
         lines: List<LyricsEntry>,
         previousOffsetMs: Int,
+        minConfidence: Float,
     ): State {
         val vocals = synchronized(heard) { heard[cacheKey] } ?: listen(songId, uri, cacheKey, durationMs)
             ?: return State.Failed(songId, "Too little of the song came through to hear the singing.")
@@ -117,7 +119,7 @@ class LyricsAutoSync(
 
         _state.value = State.Matching(songId)
         val alignment = LyricsAligner.align(lines, vocals, MaxOffsetMs)
-        if (alignment == null || alignment.confidence < MinConfidence) {
+        if (alignment == null || alignment.confidence < minConfidence) {
             return State.Failed(songId, "Couldn't match the singing to these lyrics. They may be for another version, or you can set it by hand.")
         }
         android.util.Log.i(
@@ -152,7 +154,7 @@ class LyricsAutoSync(
         return analyzer.finish()
     }
 
-    private companion object {
+    companion object {
         /** The same range the offset slider has. */
         const val MaxOffsetMs = 10_000
         const val MaxSongUs = 15 * 60_000_000L

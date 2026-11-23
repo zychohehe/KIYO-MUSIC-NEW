@@ -27,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -42,7 +43,12 @@ const val TikTokUrl = "https://www.tiktok.com/@$TikTokHandle"
 const val WhatsAppUrl = "https://whatsapp.com/channel/0029Vb8gHJ7545uuF9Ox1I2z"
 
 private const val ReleasesApi =
-    "https://api.github.com/repos/$GithubOwner/$GithubRepo/releases?per_page=20"
+    "https://api.github.com/repos/$GithubOwner/$GithubRepo/releases?per_page=50"
+
+// the newest non-prerelease, asked for on its own: with a nightly on every push, the list above can fill up with
+// nightlies and push the latest stable out of view, and the Release channel would then see nothing
+private const val LatestReleaseApi =
+    "https://api.github.com/repos/$GithubOwner/$GithubRepo/releases/latest"
 
 data class GithubRelease(
     val title: String,
@@ -104,8 +110,9 @@ fun parseFullVersion(text: String): FullVersion {
 
 private const val CacheTtlMillis = 15L * 60L * 1000L
 
-// older releases in this repo are the app under its old id, so "downgrade" to one would add a second app instead
-private val FirstReleaseWithThisId = FullVersion(major = 8, minor = 2, patch = 3)
+// the first Kiyo release; anything below it is not this app. (This used to be 8.2.3, the number Mochy was on, which
+// is higher than every Kiyo version 5.x, so the filter below threw out every release and no update was ever offered)
+private val FirstReleaseWithThisId = FullVersion(major = 5, minor = 0, patch = 0)
 
 /** A release with the version it was parsed to, so it can be compared without parsing again. */
 private class ParsedRelease(val version: FullVersion, val release: GithubRelease)
@@ -166,16 +173,31 @@ suspend fun getPreviousRelease(channel: UpdateChannel, force: Boolean = false): 
     }
 }
 
+private fun githubGet(url: String): String {
+    val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+        connectTimeout = 12_000
+        readTimeout = 12_000
+        setRequestProperty("Accept", "application/vnd.github+json")
+        setRequestProperty("User-Agent", "kiyo-android")
+    }
+    return try {
+        val code = connection.responseCode
+        if (code == 403 || code == 429) error("GitHub is limiting requests right now, please try again in a while")
+        if (code !in 200..299) error("GitHub answered HTTP $code")
+        connection.inputStream.bufferedReader().use { it.readText() }
+    } finally {
+        connection.disconnect()
+    }
+}
+
 private suspend fun fetchReleases(): Result<List<ParsedRelease>> = withContext(Dispatchers.IO) {
     runCatching {
-        val connection = (URL(ReleasesApi).openConnection() as HttpURLConnection).apply {
-            connectTimeout = 12_000
-            readTimeout = 12_000
-            setRequestProperty("Accept", "application/vnd.github+json")
-            setRequestProperty("User-Agent", "kiyo-android")
+        val releases = JSONArray(githubGet(ReleasesApi))
+        // the newest stable on its own; if that one call fails the list still works
+        runCatching { JSONObject(githubGet(LatestReleaseApi)) }.getOrNull()?.let { latest ->
+            val seen = (0 until releases.length()).any { releases.getJSONObject(it).optString("tag_name") == latest.optString("tag_name") }
+            if (!seen) releases.put(latest)
         }
-        val json = connection.inputStream.bufferedReader().use { it.readText() }
-        val releases = JSONArray(json)
         val appArch = runCatching { BuildConfig.ARCHITECTURE }.getOrDefault("universal")
 
         buildList {
@@ -241,6 +263,8 @@ private suspend fun fetchReleases(): Result<List<ParsedRelease>> = withContext(D
                     universalUrl != null -> universalSize
                     else -> fallbackSize
                 }
+                // a release with no APK yet (still uploading, or a notes-only release) is not an update, so it isn't announced
+                if (apkUrl == null) continue
 
                 add(
                     ParsedRelease(

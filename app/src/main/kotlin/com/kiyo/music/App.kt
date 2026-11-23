@@ -227,6 +227,8 @@ class App : Application(), SingletonImageLoader.Factory {
             val nm = getSystemService(NotificationManager::class.java)
             nm.createNotificationChannel(channel)
         }
+        // checks for a new release a few times a day, even with the app closed, and posts the update notification
+        runCatching { com.kiyo.music.core.updater.UpdateCheckWorker.schedule(this) }
     }
 
     private fun observeSettingsChanges() {

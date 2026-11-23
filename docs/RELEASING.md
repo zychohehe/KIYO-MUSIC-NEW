@@ -11,8 +11,18 @@ This file explains how updates reach people. Kiyo's in-app updater reads GitHub 
 | GitHub label | Pre-release | Latest release |
 | Who is offered it | people on the **Nightly** channel in the app | everyone on the **Release** channel, and the website |
 
-After a stable release, change `versionName` in `app/build.gradle.kts` to that version, so the next nightlies are
-numbered on top of it (`5.6.1.1`, `5.6.1.2`, ...). If you forget, nightlies stay below the stable and are not offered.
+Nightlies number themselves on top of whichever is higher: `versionName` in `app/build.gradle.kts` or the newest
+`vX.Y.Z` tag. So after a stable release `v5.6.1`, the next nightlies are `5.6.1.1`, `5.6.1.2`, ... on their own, and
+you don't have to edit `versionName` (raising it is still fine, it just keeps the file honest).
+
+## How people get told
+
+- The app checks GitHub at launch, and `UpdateCheckWorker` checks again every 6 hours in the background (needs a
+  network; skipped when update checks or update notifications are off in settings).
+- A new release shows the "Kiyo x.y.z is out" notification, at most three times per release (now, +2 weeks, +3 months).
+- A release only counts once its APK is attached, so a half-uploaded release is never announced.
+- The Release channel only sees stable releases, the Nightly channel sees both. Installed from a stable build and
+  want nightlies? Switch the channel in the app's version sheet.
 
 ## Signing key (do this once, before real users)
 
