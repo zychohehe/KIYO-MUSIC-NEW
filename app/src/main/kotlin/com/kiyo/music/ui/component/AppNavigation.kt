@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -47,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.lerp
@@ -254,8 +256,11 @@ fun AppNavigationBar(
     }
     val glassState = LocalGlassState.current ?: remember { GlassState() }
     val accentWash = rememberChromeAccentWash()
-    val selectedIndex = navigationItems.indexOfFirst { it.route == selectedTabRoute }
-    val tabCount = navigationItems.size
+    // like the reference: the tabs share one glass pill, and Search is its own round button beside it
+    val pillItems = remember(navigationItems) { navigationItems.filter { it != Screens.Search } }
+    val searchItem = remember(navigationItems) { navigationItems.firstOrNull { it == Screens.Search } }
+    val selectedIndex = pillItems.indexOfFirst { it.route == selectedTabRoute }
+    val tabCount = pillItems.size
     val pill = rememberNavPill(selectedIndex)
     // a look's glass can draw its own edge and its own pill, and then kiyo leaves its hairline, shadow or highlight out
     val moduleGlass = rememberChromeModuleGlass()
@@ -267,53 +272,165 @@ fun AppNavigationBar(
     }
 
     Box(modifier = modifier) {
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
                 .padding(horizontal = 24.dp, vertical = 8.dp)
                 .align(Alignment.TopCenter)
-                .height(NavBarHeight)
-                .press3D(maxTilt = 4f, pressedScale = 0.985f)
-                .then(if (moduleGlass?.shadow == false) Modifier else Modifier.dropShadow(NavBarShape, ChromeShadow))
-                .clip(NavBarShape)
-                .drawWithContent {
-                    drawContent()
-                    if (moduleGlass?.outline != false) drawChromeOutline(Offset.Zero, size, cornerRadius = size.height / 2f)
-                }
+                .height(NavBarHeight),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            FrostedChromeGlass(
-                state = glassState,
-                pureBlack = pureBlack,
-                accentWash = accentWash,
-                modifier = Modifier.fillMaxSize(),
-                pill = glassPill,
-            )
-
-            Row(
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = NavRowPadding)
-                    .navHighlight(pill, tabCount) { moduleGlass?.drawsPill != true }
-                    .navBeam(pill, tabCount, litTint)
-                    .navPillDrag(pill, tabCount, selectedIndex) { index ->
-                        navigationItems.getOrNull(index)?.let { onItemClick(it, index == selectedIndex) }
-                    },
-                verticalAlignment = Alignment.CenterVertically
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .press3D(maxTilt = 4f, pressedScale = 0.985f)
+                    .then(if (moduleGlass?.shadow == false) Modifier else Modifier.dropShadow(NavBarShape, ChromeShadow))
+                    .clip(NavBarShape)
+                    .drawWithContent {
+                        drawContent()
+                        if (moduleGlass?.outline != false) drawChromeOutline(Offset.Zero, size, cornerRadius = size.height / 2f)
+                    }
             ) {
-                navigationItems.forEach { screen ->
-                    // lit = the tab this page belongs to. what a tap on it does (scroll to the top
-                    // on the tab's own page, back to that page from deeper in) is the caller's call
-                    NavTab(
-                        screen = screen,
-                        isSelected = screen.route == selectedTabRoute,
-                        onItemClick = onItemClick,
-                        onDoubleTap = onSearchDoubleTap.takeIf { screen == Screens.Search },
-                        litTint = litTint,
-                    )
+                FrostedChromeGlass(
+                    state = glassState,
+                    pureBlack = pureBlack,
+                    accentWash = accentWash,
+                    modifier = Modifier.fillMaxSize(),
+                    pill = glassPill,
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = NavRowPadding)
+                        .navHighlight(pill, tabCount) { moduleGlass?.drawsPill != true }
+                        .navPillDrag(pill, tabCount, selectedIndex) { index ->
+                            pillItems.getOrNull(index)?.let { onItemClick(it, index == selectedIndex) }
+                        },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    pillItems.forEach { screen ->
+                        // lit = the tab this page belongs to. what a tap on it does (scroll to the top
+                        // on the tab's own page, back to that page from deeper in) is the caller's call
+                        NavTab(
+                            screen = screen,
+                            isSelected = screen.route == selectedTabRoute,
+                            onItemClick = onItemClick,
+                            onDoubleTap = null,
+                            litTint = litTint,
+                            alwaysLabel = true,
+                        )
+                    }
                 }
             }
+
+            if (searchItem != null) {
+                SearchOrb(
+                    screen = searchItem,
+                    isSelected = searchItem.route == selectedTabRoute,
+                    onItemClick = onItemClick,
+                    onDoubleTap = onSearchDoubleTap,
+                    glassState = glassState,
+                    pureBlack = pureBlack,
+                    accentWash = accentWash,
+                    moduleGlass = moduleGlass,
+                    litTint = litTint,
+                )
+            }
         }
+    }
+}
+
+/** Search as its own round glass button next to the tab pill. A second quick tap goes straight into typing. */
+@Composable
+private fun SearchOrb(
+    screen: Screens,
+    isSelected: Boolean,
+    onItemClick: (Screens, Boolean) -> Unit,
+    onDoubleTap: (() -> Unit)?,
+    glassState: GlassState,
+    pureBlack: Boolean,
+    accentWash: (() -> Color)?,
+    moduleGlass: com.kiyo.music.modules.skin.ActiveGlass?,
+    litTint: Color,
+) {
+    val viewConfiguration = LocalViewConfiguration.current
+    val interactionSource = remember { MutableInteractionSource() }
+    val lastTap = remember { longArrayOf(0L) }
+    val lit = animateFloatAsState(
+        targetValue = if (isSelected) 1f else 0f,
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMediumLow),
+        label = "nav_search_lit"
+    )
+    val unlitIcon = coil3.compose.rememberAsyncImagePainter(model = screen.iconIdInactive)
+    val litIcon = coil3.compose.rememberAsyncImagePainter(model = screen.iconIdActive)
+
+    Box(
+        modifier = Modifier
+            .size(NavBarHeight)
+            .press3D(maxTilt = 4f, pressedScale = 0.97f)
+            .then(if (moduleGlass?.shadow == false) Modifier else Modifier.dropShadow(CircleShape, ChromeShadow))
+            .clip(CircleShape)
+            .drawWithContent {
+                drawContent()
+                if (moduleGlass?.outline != false) drawChromeOutline(Offset.Zero, size, cornerRadius = size.height / 2f)
+            }
+            .pressBounce(interactionSource, pressedScale = 0.9f)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = RemoteFocus,
+                onClick = {
+                    tabTapped(lastTap, viewConfiguration.doubleTapTimeoutMillis, onDoubleTap) {
+                        onItemClick(screen, isSelected)
+                    }
+                }
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        FrostedChromeGlass(
+            state = glassState,
+            pureBlack = pureBlack,
+            accentWash = accentWash,
+            modifier = Modifier.fillMaxSize(),
+        )
+        // the lit state: the same soft disc the tab pill uses, drawn inside the circle
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .drawBehind {
+                    if (moduleGlass?.drawsPill == true) return@drawBehind
+                    drawCircle(
+                        color = ChromeHighlightColor,
+                        radius = size.minDimension / 2f - 8.dp.toPx(),
+                        alpha = lit.value.coerceIn(0f, 1f),
+                    )
+                }
+        )
+        Icon(
+            painter = unlitIcon,
+            contentDescription = stringResource(screen.titleId),
+            tint = Color.White,
+            modifier = Modifier
+                .size(24.dp)
+                .graphicsLayer {
+                    alpha = UnlitIconAlpha * (1f - lit.value.coerceIn(0f, 1f))
+                    compositingStrategy = CompositingStrategy.ModulateAlpha
+                }
+        )
+        Icon(
+            painter = litIcon,
+            contentDescription = null,
+            tint = litTint,
+            modifier = Modifier
+                .size(24.dp)
+                .graphicsLayer {
+                    alpha = lit.value.coerceIn(0f, 1f)
+                    compositingStrategy = CompositingStrategy.ModulateAlpha
+                }
+        )
     }
 }
 
@@ -371,6 +488,8 @@ internal fun RowScope.NavTab(
     onItemClick: (Screens, Boolean) -> Unit,
     onDoubleTap: (() -> Unit)?,
     litTint: Color = Color.White,
+    /** the tab's name stays under its icon when it isn't lit (the phone bar); the wide bar keeps it for the lit tab only */
+    alwaysLabel: Boolean = false,
 ) {
     val viewConfiguration = LocalViewConfiguration.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -403,9 +522,9 @@ internal fun RowScope.NavTab(
         contentAlignment = Alignment.Center
     ) {
         if (screen == Screens.Library) {
-            LibraryDownloadIcon { TabIcons(screen, unlitIcon, litIcon, iconSize, litTint) { lit.value } }
+            LibraryDownloadIcon { TabIcons(screen, unlitIcon, litIcon, iconSize, litTint, alwaysLabel) { lit.value } }
         } else {
-            TabIcons(screen, unlitIcon, litIcon, iconSize, litTint) { lit.value }
+            TabIcons(screen, unlitIcon, litIcon, iconSize, litTint, alwaysLabel) { lit.value }
         }
     }
 }
@@ -418,6 +537,7 @@ private fun TabIcons(
     litIcon: androidx.compose.ui.graphics.painter.Painter,
     iconSize: androidx.compose.ui.unit.Dp,
     litTint: Color,
+    alwaysLabel: Boolean = false,
     lit: () -> Float,
 ) {
     Box(contentAlignment = Alignment.Center) {
@@ -426,7 +546,7 @@ private fun TabIcons(
             modifier = Modifier.graphicsLayer {
                 val l = lit().coerceIn(0f, 1f)
                 // the lit tab's icon lifts a little and grows, making room for its name underneath
-                translationY = -6.dp.toPx() * l
+                translationY = -6.dp.toPx() * (if (alwaysLabel) 1f else l)
                 scaleX = 1f + 0.1f * l
                 scaleY = 1f + 0.1f * l
             },
@@ -456,7 +576,7 @@ private fun TabIcons(
         }
         Text(
             text = stringResource(screen.titleId),
-            color = litTint,
+            color = if (alwaysLabel) lerp(Color.White.copy(alpha = UnlitIconAlpha), litTint, lit().coerceIn(0f, 1f)) else litTint,
             fontSize = 10.sp,
             fontWeight = FontWeight.SemiBold,
             letterSpacing = (-0.1).sp,
@@ -464,8 +584,8 @@ private fun TabIcons(
             softWrap = false,
             modifier = Modifier.graphicsLayer {
                 val l = lit().coerceIn(0f, 1f)
-                alpha = l
-                translationY = 17.dp.toPx() + (1f - l) * 4.dp.toPx()
+                alpha = if (alwaysLabel) 1f else l
+                translationY = 17.dp.toPx() + (if (alwaysLabel) 0f else (1f - l) * 4.dp.toPx())
             },
         )
     }

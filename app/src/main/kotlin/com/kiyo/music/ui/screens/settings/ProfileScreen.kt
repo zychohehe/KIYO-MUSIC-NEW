@@ -230,7 +230,17 @@ private object KiyoGreeting {
 /** Where the header is in its pull-down / scratch / recap life. */
 private enum class HeaderStage { Collapsed, Pulling, Expanding, Expanded, Scanning, Invalid, Story }
 
-private val PageCard = Color(0xFF0F0F0F)
+private val PageCard = Color.Black
+
+// the new style: no cards, just sections on the page, each closed by a hairline
+private fun Modifier.flatSection(): Modifier = drawBehind {
+    drawLine(
+        color = Color.White.copy(alpha = 0.10f),
+        start = Offset(0f, size.height - 0.5.dp.toPx()),
+        end = Offset(size.width, size.height - 0.5.dp.toPx()),
+        strokeWidth = 1.dp.toPx(),
+    )
+}
 
 @Composable
 fun ProfileScreen(navController: NavController) {
@@ -478,7 +488,7 @@ fun ProfileScreen(navController: NavController) {
                 minOf(constraints.maxWidth - 2 * inset, maxCardW)
             }
             val cardH = cardW / IdCardAspect
-            val collapsedH = if (landscape) viewportH else collapsedHeaderPx(topPx, cardH, density.density)
+            val collapsedH = if (landscape) viewportH else topPx + with(density) { 150.dp.toPx() }
             val cardTopCollapsed = if (landscape) {
                 landscapeTop + ((landscapeBottom - landscapeTop - cardH) / 2f).coerceAtLeast(0f)
             } else {
@@ -500,7 +510,8 @@ fun ProfileScreen(navController: NavController) {
                     }
 
                     override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-                        val canPull = stage == HeaderStage.Collapsed || stage == HeaderStage.Pulling
+                        // no card to pull open any more
+                        val canPull = false
                         if (!canPull || !downInHeader || source != NestedScrollSource.UserInput || available.y <= 0f) return Offset.Zero
                         stage = HeaderStage.Pulling
                         pullPx += available.y
@@ -575,196 +586,21 @@ fun ProfileScreen(navController: NavController) {
                                     expand = (1f + dy.coerceAtMost(0f) / pullRange * 0.8f).coerceIn(0.4f, 1f)
                                 }
                             }
-                            .then(if (landscape) Modifier.clipEndRounded(cornerPx) else Modifier.clipBottomRounded { cornerPx * (1f - expand) })
-                            .drawBehind { drawRect(lerp(HeaderGrey, StoryDark, expand)) }
-                            .giantText(giant, time, measurer, centerY = { windowHeight / 2f - rootOnScreen.y })
-                            .recapDots(color = { lerp(HeaderDots, StoryDots, expand) }),
+                            ,
                     ) {
-                        // greeting (in the header; its scrolled-away twin lives in the top bar); on its side it heads the cards at the right
-                        if (!landscape) Text(
-                            text = stringResource(R.string.profile_greeting_format, stringResource(KiyoGreeting.currentRes), accountName.ifBlank { stringResource(R.string.profile_greeting_fallback) }),
-                            style = PageTitle,
+                        // new style: no profile card and no greeting, just the page's own title
+                        Text(
+                            text = stringResource(R.string.settings),
+                            style = PageTitle.copy(fontSize = 34.sp),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier
                                 .padding(start = HomeContentInset, end = HomeContentInset, top = statusBarTop + 80.dp)
                                 .graphicsLayer {
-                                    alpha = ((1f - expand * 3f) * (1f - collapseProgress * 1.6f)).coerceIn(0f, 1f) * contentIn.value
+                                    alpha = ((1f - collapseProgress * 1.6f)).coerceIn(0f, 1f) * contentIn.value
                                     translationY = (1f - contentIn.value) * 24.dp.toPx()
                                 },
                         )
-
-                        // the card: tilts with the finger, drifts a little on its own, flips to the barcode
-                        val showBack by remember { derivedStateOf { flip.value >= 0.5f } }
-                        val coatingGone by remember(scratch) { derivedStateOf { scratch.dissolve.value >= 1f } }
-                        Box(
-                            modifier = Modifier
-                                .then(
-                                    if (landscape) {
-                                        Modifier
-                                            .padding(start = with(density) { ((paneW - cardW) / 2f).toDp() })
-                                            .width(with(density) { cardW.toDp() })
-                                    } else {
-                                        Modifier
-                                            .align(Alignment.TopCenter)
-                                            .widthIn(max = 380.dp + HomeContentInset * 2)
-                                            .fillMaxWidth()
-                                            .padding(horizontal = HomeContentInset)
-                                    }
-                                )
-                                .aspectRatio(IdCardAspect)
-                                .offset { androidx.compose.ui.unit.IntOffset(0, lerpF(cardTopCollapsed, cardTopExpanded, expand).roundToInt()) }
-                                .onPlaced { profile.cardSlot = it }
-                                .onGloballyPositioned { coords ->
-                                    val p = coords.positionOnScreen()
-                                    cardOnScreen = Rect(p, Size(coords.size.width.toFloat(), coords.size.height.toFloat()))
-                                }
-                                .graphicsLayer {
-                                    // under the profile page the card holds still (no frames for nobody),
-                                    // and it eases back into leaning as the page closes over it again
-                                    val follow = profile.cardFollow.value
-                                    var leanX = profile.heldTiltX
-                                    var leanY = profile.heldTiltY
-                                    if (follow > 0f) {
-                                        val live = stage == HeaderStage.Collapsed || stage == HeaderStage.Pulling
-                                        val sway = if (live) 1f else 0f
-                                        val t = time.sway
-                                        // the phone's lean too; half as much on the back, so scratching stays steady
-                                        val lean = if (flip.value >= 0.5f) 0.5f else 1f
-                                        val liveY = flip.value * 180f + tiltY.value + deviceTilt.rotationY * lean + sway * sin(t * 0.9f) * 3f
-                                        val liveX = tiltX.value + deviceTilt.rotationX * lean + sway * cos(t * 0.7f) * 2f - (if (stage == HeaderStage.Pulling) expand * 14f else 0f)
-                                        leanX = lerpF(leanX, liveX, follow)
-                                        leanY = lerpF(leanY, liveY, follow)
-                                    }
-                                    rotationX = leanX
-                                    rotationY = leanY
-                                    // the profile page's flying copies lean the same way when they take off or land
-                                    profile.cardTiltX = leanX
-                                    profile.cardTiltY = leanY
-                                    cameraDistance = 14f * this.density
-                                    alpha = if (cardHidden) 0f else 1f
-                                }
-                                .clickable(enabled = stage == HeaderStage.Collapsed, interactionSource = cardPress, indication = RemoteFocus) {
-                                    if (expand > 0f) return@clickable
-                                    haptics.performHapticFeedback(HapticFeedbackType.ContextClick)
-                                    profile.open()
-                                },
-                        ) {
-                            if (!showBack) {
-                                ProfileIdCard(
-                                    username = accountName,
-                                    photo = photo,
-                                    cardNumber = cardNumber,
-                                    joinedText = joinedText,
-                                    showIdCardOf = true,
-                                    anchors = profile.card,
-                                    partsAlpha = { if (profile.coversCard) 0f else 1f },
-                                    marqueeRunning = { !profile.holdsPage },
-                                    showEditHint = true,
-                                    pressed = { cardPressed && stage == HeaderStage.Collapsed },
-                                )
-                            } else {
-                                val range = (recap as? RecapAvailability.Ready)?.stats?.range
-                                val payload = recapBarcodePayload(range)
-                                IdCardBack(
-                                    username = accountName,
-                                    payload = payload,
-                                    caption = recapBarcodeCaption(payload, cardNumber),
-                                    scratch = scratch.takeIf { !coatingGone && (stage == HeaderStage.Expanding || stage == HeaderStage.Expanded || stage == HeaderStage.Scanning) },
-                                    time = time,
-                                    scan = { scan.value },
-                                    verdict = { verdict },
-                                    onScratchProgress = { if (it >= 0.55f) onScratched() },
-                                    modifier = Modifier.graphicsLayer { rotationY = 180f },
-                                )
-                            }
-                        }
-
-                        // pull hint: a chevron that, with a recap waiting, turns into words now and then; on its side
-                        // there's nothing to pull, so a tap turns the phone upright and opens the recap
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .offset { androidx.compose.ui.unit.IntOffset(0, (cardTopCollapsed + cardH + 14.dp.toPx()).roundToInt()) }
-                                .height(30.dp)
-                                .then(
-                                    if (landscape) {
-                                        Modifier.clickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = RemoteFocus,
-                                            enabled = stage == HeaderStage.Collapsed,
-                                        ) { recapAsked = true }
-                                    } else Modifier
-                                )
-                                .graphicsLayer {
-                                    alpha = (1f - expand * 4f).coerceIn(0f, 1f) * contentIn.value
-                                    translationY = ((sin(time.sway * 2.4f) + 1f) / 2f) * 4.dp.toPx()
-                                },
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.expand_more),
-                                contentDescription = stringResource(R.string.profile_pull_down_cd),
-                                tint = Color.White.copy(alpha = 0.35f),
-                                modifier = Modifier
-                                    .size(30.dp)
-                                    .graphicsLayer {
-                                        val w = hintWords.value
-                                        alpha = 1f - w
-                                        scaleX = 1f - 0.3f * w
-                                        scaleY = 1f - 0.3f * w
-                                        renderEffect = BlurEffectCache.element(w * 14f)
-                                    },
-                            )
-                            if (recapWaiting) {
-                                Text(
-                                    text = if (landscape) stringResource(R.string.recap_tap_hint) else stringResource(R.string.profile_swipe_down_hint),
-                                    style = MonoSmall.copy(color = Color.White.copy(alpha = 0.6f)),
-                                    maxLines = 1,
-                                    modifier = Modifier.graphicsLayer {
-                                        val w = hintWords.value
-                                        alpha = w
-                                        scaleX = 0.85f + 0.15f * w
-                                        scaleY = 0.85f + 0.15f * w
-                                        renderEffect = BlurEffectCache.element((1f - w) * 14f)
-                                    },
-                                )
-                            }
-                        }
-
-                        // under the expanded card: "scratch!", or why the code didn't scan
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .offset { androidx.compose.ui.unit.IntOffset(0, (cardTopExpanded + cardH + 34.dp.toPx()).roundToInt()) }
-                                .padding(horizontal = 40.dp)
-                                .graphicsLayer {
-                                    alpha = ((expand - 0.75f) / 0.25f).coerceIn(0f, 1f)
-                                    translationY = (1f - expand) * 40.dp.toPx()
-                                },
-                        ) {
-                            val invalid = stage == HeaderStage.Invalid
-                            Text(
-                                text = if (invalid) stringResource(
-                                            R.string.profile_come_back_later,
-                                        ) else stringResource(R.string.profile_scratch_hint),
-                                style = PageTitle.copy(fontSize = 20.sp, textAlign = TextAlign.Center),
-                                modifier = Modifier.graphicsLayer { alpha = if (invalid) 1f else 1f - scratch.dissolve.value },
-                            )
-                            if (invalid) {
-                                Text(
-                                    text = (recap as? RecapAvailability.NotYet)?.comeBack.orEmpty(),
-                                    style = PageTitle.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center, color = Color.White.copy(alpha = 0.6f)),
-                                    modifier = Modifier.padding(top = 6.dp),
-                                )
-                                Text(
-                                    text = stringResource(R.string.profile_swipe_up_to_close),
-                                    style = MonoSmall.copy(color = Color.White.copy(alpha = 0.35f)),
-                                    modifier = Modifier.padding(top = 26.dp),
-                                )
-                            }
-                        }
                     }
 
                     },
@@ -778,16 +614,7 @@ fun ProfileScreen(navController: NavController) {
                                 translationY = (1f - contentIn.value) * 60.dp.toPx()
                             },
                     ) {
-                        if (landscape) {
-                            Spacer(Modifier.height(statusBarTop + 30.dp))
-                            Text(
-                                text = stringResource(R.string.profile_greeting_format, stringResource(KiyoGreeting.currentRes), accountName.ifBlank { stringResource(R.string.profile_greeting_fallback) }),
-                                style = PageTitle,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.graphicsLayer { alpha = 1f - collapseProgress },
-                            )
-                        }
+                        if (landscape) Spacer(Modifier.height(statusBarTop + 30.dp))
                         Spacer(Modifier.height(24.dp))
                         ListeningTimeCard(totalListeningMs, onViewStats = { navController.navigate("stats") })
                         Spacer(Modifier.height(16.dp))
@@ -870,21 +697,6 @@ fun ProfileScreen(navController: NavController) {
                         transformOrigin = TransformOrigin(0f, 0.5f)
                     },
             )
-            if (collapseProgress > 0.01f) {
-                Text(
-                    text = stringResource(R.string.profile_greeting_format, stringResource(KiyoGreeting.currentRes), accountName.ifBlank { stringResource(R.string.profile_greeting_fallback) }),
-                    style = PageTitle.copy(fontSize = 18.sp),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .padding(start = HomeContentInset + 40.dp, end = HomeContentInset, top = statusBarTop + 37.dp)
-                        .graphicsLayer {
-                            val p = ((collapseProgress - 0.35f) / 0.65f).coerceIn(0f, 1f)
-                            alpha = easeOutCubic(p)
-                            translationY = (1f - easeOutCubic(p)) * 12.dp.toPx()
-                        },
-                )
-            }
         }
 
         ProfileMorphHost(
@@ -1029,8 +841,7 @@ private fun ListeningTimeCard(totalMs: Long, onViewStats: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(22.dp))
-            .background(PageCard)
+            .flatSection()
             .clickable(onClick = onViewStats)
             .padding(CardPadding),
     ) {
@@ -1096,8 +907,7 @@ private fun VersionCard(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(22.dp))
-                .background(PageCard)
+                .flatSection()
                 .clickable(onClick = onCardClick)
                 .padding(CardPadding),
         ) {
@@ -1202,8 +1012,7 @@ private fun DeveloperCard(onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(22.dp))
-            .background(PageCard)
+            .flatSection()
             .clickable(interactionSource = interaction, indication = RemoteFocus, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
@@ -1237,8 +1046,7 @@ private fun DiscordCard(onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(22.dp))
-            .background(PageCard)
+            .flatSection()
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
@@ -1270,8 +1078,7 @@ private fun OpenSettingsRow(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(64.dp)
-            .clip(RoundedCornerShape(22.dp))
-            .background(PageCard)
+            .flatSection()
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp),
     ) {
