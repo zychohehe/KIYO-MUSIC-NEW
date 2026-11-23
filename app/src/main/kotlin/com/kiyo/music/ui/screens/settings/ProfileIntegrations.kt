@@ -1,8 +1,7 @@
 // ProfileIntegrations.kt
 //
-// The "Integrations" block on the profile page: the three services that used to live in a page of
-// their own under settings. Discord (rich presence), YouTube Music (the account login + sync) and
-// Backup. Each row opens that service's own page, and its sign-in is on that page.
+// The "Integrations" block on the profile page: the account sign-ins (Spotify, Apple Music, YouTube
+// Music) and Backup. Each row opens that service's own page, and its sign-in is on that page.
 
 package com.kiyo.music.ui.screens.settings
 
@@ -37,7 +36,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kiyo.music.R
+import com.kiyo.music.importer.account.AccountService
 import com.kiyo.music.ui.screens.settings.importsync.YouTubeSyncRoute
+import com.kiyo.music.ui.screens.settings.importsync.accountImportRoute
 import com.kiyo.music.ui.screens.settings.integrations.backup.BackupRoute
 import com.kiyo.music.ui.theme.InterFontFamily
 
@@ -72,11 +73,23 @@ internal fun ProfileSectionTitle(text: String) {
     )
 }
 
-/** Discord, YouTube Music and Backup as one tidy block, a hairline between the rows. */
+/** Spotify, Apple Music, YouTube Music and Backup as one tidy block, a hairline between the rows. */
 @Composable
 internal fun ProfileIntegrations(navController: NavController) {
     Column(Modifier.fillMaxWidth()) {
         ProfileSectionTitle(stringResource(R.string.integrations))
+        IntegrationLine(
+            name = AccountService.SPOTIFY.label,
+            description = stringResource(R.string.import_provider_spotify_desc),
+            icon = R.drawable.provider_spotify,
+            onClick = { navController.navigate(accountImportRoute(AccountService.SPOTIFY)) },
+        )
+        IntegrationLine(
+            name = AccountService.APPLE_MUSIC.label,
+            description = stringResource(R.string.import_provider_apple_music_desc),
+            icon = R.drawable.provider_apple_music,
+            onClick = { navController.navigate(accountImportRoute(AccountService.APPLE_MUSIC)) },
+        )
         IntegrationLine(
             name = stringResource(R.string.module_youtube_name),
             description = stringResource(R.string.module_youtube_desc),
