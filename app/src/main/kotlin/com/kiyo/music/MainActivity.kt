@@ -787,14 +787,23 @@ class MainActivity : ComponentActivity() {
                 var navHidden by remember { mutableStateOf(false) }
                 val navHide = animateFloatAsState(
                     targetValue = if (navHidden) 1f else 0f,
-                    animationSpec = tween(240),
+                    // a critically damped spring: it can be turned around mid-way without a jump, and eases in and out
+                    animationSpec = spring(dampingRatio = 1f, stiffness = 420f),
                     label = "navHideOnScroll",
                 )
+                val navFlipDistance = 28.dp
+                val NavFlipDistancePx = with(androidx.compose.ui.platform.LocalDensity.current) { navFlipDistance.toPx() }
+                var navDragSum by remember { mutableStateOf(0f) }
                 val navHideConnection = remember {
                     object : NestedScrollConnection {
                         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                             // sideways swipes have no up-down part, and a tiny wobble shouldn't flip it
-                            if (available.y < -6f) navHidden = true else if (available.y > 6f) navHidden = false
+                            // the drag has to add up to a real swipe before it flips, so a wobble or a fling's tail never makes the bar twitch
+                            if (available.y == 0f) return Offset.Zero
+                            if ((available.y < 0f) != (navDragSum < 0f)) navDragSum = 0f
+                            navDragSum += available.y
+                            if (navDragSum < -NavFlipDistancePx) navHidden = true
+                            else if (navDragSum > NavFlipDistancePx) navHidden = false
                             return Offset.Zero
                         }
                     }
@@ -1378,7 +1387,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     // the profile avatar on every page but Home (Home draws its own) and Settings (its own header)
-                    val showAvatar = !playerOpen && currentRoute != null &&
+                    val showAvatar = !playerOpen && !com.kiyo.music.ui.component.ProfileAvatarGate.suppressed && currentRoute != null &&
                         currentRoute != Screens.Home.route &&
                         currentRoute != Screens.Settings.route &&
                         currentRoute != com.kiyo.music.ui.screens.settings.SettingsListRoute &&

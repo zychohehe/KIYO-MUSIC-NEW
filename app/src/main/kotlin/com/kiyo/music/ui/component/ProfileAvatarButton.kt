@@ -8,6 +8,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,5 +61,25 @@ fun ProfileAvatarButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
                 modifier = Modifier.size(20.dp),
             )
         }
+    }
+}
+
+
+/**
+ * Pages that draw something of their own in the top-right corner (a collapsing search circle, their own avatar)
+ * call [HideGlobalProfileAvatar], and the app-wide avatar steps aside while any of them is on screen. A count,
+ * so two pages alive at once during a slide don't switch it back on early.
+ */
+object ProfileAvatarGate {
+    var owners by mutableIntStateOf(0)
+        internal set
+    val suppressed: Boolean get() = owners > 0
+}
+
+@Composable
+fun HideGlobalProfileAvatar() {
+    DisposableEffect(Unit) {
+        ProfileAvatarGate.owners += 1
+        onDispose { ProfileAvatarGate.owners = (ProfileAvatarGate.owners - 1).coerceAtLeast(0) }
     }
 }

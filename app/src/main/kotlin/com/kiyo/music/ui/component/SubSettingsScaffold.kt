@@ -105,6 +105,8 @@ fun SubSettingsScaffold(
     titleBadge: (@Composable () -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    // the search pill folds into a circle at the top right; the app-wide profile avatar would sit right on it
+    HideGlobalProfileAvatar()
     val scrollState = rememberScrollState()
     val glassState = remember { GlassState() }
 
