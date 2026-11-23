@@ -456,8 +456,8 @@ private class LaunchMarkArt {
     private val triangle = path(
         "M96 70H136C151.464 70 164 82.536 164 98V138C164 153.464 151.464 166 136 166H96C80.536 166 68 153.464 68 138V98C68 82.536 80.536 70 96 70Z"
     )
-    // the K letter
-    private val face = path("M97 94V142M136 94L99 120M109 111L137 142")
+    // play triangle and sound wave
+    private val face = path("M96 100V136L124 118ZM138 104Q147 118 138 132")
     private val mask = Path().apply { addCircle(Pivot.x, Pivot.y, SplashMaskRadius, Path.Direction.CW) }
 
     // ic_splash_mark: a white shape with a dark outline and a dark face

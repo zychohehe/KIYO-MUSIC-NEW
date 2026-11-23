@@ -105,7 +105,7 @@
     <string name="donate_whatsapp">Follow @a2unknowwn on TikTok</string>
     <string name="donate_whatsapp_desc">News, tips and new builds first</string>
     <string name="donate_github">Follow zychohehe on GitHub</string>
-    <string name="donate_note">starring the repo and sharing the app already helps a lot, thank you :3</string>
+    <string name="donate_note">following on TikTok and sharing the app already helps a lot, thank you :3</string>
 
     <!-- Album Screen -->
     <string name="album_more_by_artist">More by %1$s</string>
@@ -114,4 +114,9 @@
     <string name="album_releases_for_you">Releases for you</string>
     <string name="album_explicit_tag">Explicit</string>
     <string name="album_load_failed">Couldn\'t load this album. Tap to try again</string>
+    <string name="about_version_label">Version %1$s</string>
+    <string name="about_app_tagline">A clean, fast music player. Free, with no ads.</string>
+    <string name="about_developer">Developer</string>
+    <string name="about_developer_role">Developer of Kiyo Music</string>
+    <string name="about_follow_tiktok">Follow on TikTok</string>
 </resources>

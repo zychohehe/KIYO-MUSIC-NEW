@@ -863,6 +863,7 @@
     <!-- Onboarding -->
     <string name="welcome_to">Welcome to</string>
     <string name="welcome_lets_listen">Let\'s start listening!</string>
+    <string name="welcome_finale" translatable="false">Welcome to Kiyo Music</string>
     <string name="welcome_tap_anywhere">Tap anywhere to continue</string>
     <!-- "welcome" in twenty languages drifting behind the welcome page, the same in every language on purpose -->
     <string-array name="welcome_words" translatable="false">

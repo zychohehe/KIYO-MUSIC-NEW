@@ -2,9 +2,9 @@
 <resources>
     <string name="supplemental_support_enjoying">Suka dengan Kiyo Music?</string>
     <string name="supplemental_support_title">Dukung pengembangan Kiyo!</string>
-    <string name="supplemental_support_body">terima kasih sudah mencoba! btw, Kiyo Music akan selalu gratis, selamanya milikmu! &lt;3\n\nAkan sangat membantu kami kalau kamu mendukung pengembangnya, sekecil apa pun itu!! &lt;3\nmemberi bintang pada repo Kiyo saja sudah cukup. dan terima kasih lagi!</string>
+    <string name="supplemental_support_body">terima kasih sudah mencoba! btw, Kiyo Music akan selalu gratis, selamanya milikmu! &lt;3\n\nAkan sangat membantu kami kalau kamu mendukung pengembangnya, sekecil apa pun itu!! &lt;3\nmengikuti TikTok developer saja sudah cukup. dan terima kasih lagi!</string>
     <string name="supplemental_support_donate">Gabung channel!</string>
-    <string name="supplemental_support_star">Beri bintang repo!</string>
+    <string name="supplemental_support_star">Ikuti TikTok!</string>
     <string name="supplemental_support_dismiss">usir para pengemis ini, Tidak!</string>
     <string name="supplemental_coming_soon">Segera Hadir</string>
     <string name="supplemental_coming_soon_detail">%1$s masih dalam pengerjaan.</string>

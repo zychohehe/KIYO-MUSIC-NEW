@@ -4,6 +4,10 @@ package com.kiyo.music.ui.screens.setup
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import kotlinx.coroutines.delay
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -78,6 +82,16 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
     val enter = remember { Animatable(0f) }
     // a soft spring instead of a fixed tween: it eases in and settles without a hard stop
     LaunchedEffect(Unit) { enter.animateTo(1f, spring(dampingRatio = 0.9f, stiffness = Spring.StiffnessLow)) }
+    // logo pops in first, the closing line types itself out last
+    val logoIn = remember { Animatable(0f) }
+    val finale = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        logoIn.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessLow))
+    }
+    LaunchedEffect(Unit) {
+        delay(1500)
+        finale.animateTo(1f, tween(1500, easing = LinearEasing))
+    }
     val leave by animateFloatAsState(
         targetValue = if (isHiding) 1f else 0f,
         animationSpec = tween(380, easing = FastOutSlowInEasing),
@@ -159,6 +173,26 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
                     translationY = (1f - enter.value) * 18.dp.toPx()
                 },
         ) {
+            // logo baru: lencana play + gelombang suara, muncul dengan pegas
+            Box(
+                modifier = Modifier
+                    .padding(bottom = (14f * u).dp)
+                    .size((72f * u).dp)
+                    .graphicsLayer {
+                        val k = 0.6f + 0.4f * logoIn.value
+                        scaleX = k; scaleY = k; alpha = logoIn.value.coerceIn(0f, 1f)
+                    }
+                    .clip(RoundedCornerShape(22f * u))
+                    .background(Brush.linearGradient(listOf(Color(0xFF3A4A8C), Color(0xFF1B1F3B))))
+                    .border(1.dp, Color.White.copy(alpha = 0.18f), RoundedCornerShape(22f * u)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.ic_launcher_mark),
+                    contentDescription = null,
+                    modifier = Modifier.size((118f * u).dp),
+                )
+            }
             // lencana kecil bergaya kaca di atas sapaan
             Box(
                 modifier = Modifier
@@ -207,6 +241,18 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
                 .padding(start = layout.titleStart, end = 24.dp, bottom = 30.dp)
                 .graphicsLayer { alpha = enter.value * (1f - leave) },
         ) {
+            val full = stringResource(R.string.welcome_finale)
+            Text(
+                text = full.take((full.length * finale.value).toInt()),
+                style = TextStyle(
+                    brush = Brush.linearGradient(listOf(Color(0xFFFFFFFF), Color(0xFFA9BCD0), Color(0xFF8FA6FF))),
+                    fontSize = (28f * u).sp,
+                    lineHeight = (32f * u).sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = OnbTitleTracking,
+                ),
+                modifier = Modifier.height((40f * u).dp),
+            )
             Text(
                 text = stringResource(R.string.welcome_lets_listen),
                 color = Color(0xFFD0D0D0),

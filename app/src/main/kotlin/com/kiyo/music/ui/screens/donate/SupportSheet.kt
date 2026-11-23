@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kiyo.music.R
-import com.kiyo.music.core.updater.GithubRepoUrl
+import com.kiyo.music.core.updater.TikTokUrl
 import com.kiyo.music.ui.component.PopupSheetHandleHeight
 import com.kiyo.music.ui.component.PopupSheetState
 import com.kiyo.music.ui.screens.update.openUrl
@@ -113,7 +113,7 @@ private fun SupportButtons(popup: PopupSheetState) {
             )
             DonatePillButton(
                 text = stringResource(R.string.supplemental_support_star),
-                onClick = { context.openUrl(GithubRepoUrl) },
+                onClick = { context.openUrl(TikTokUrl) },
                 modifier = Modifier.weight(1f),
             )
         }

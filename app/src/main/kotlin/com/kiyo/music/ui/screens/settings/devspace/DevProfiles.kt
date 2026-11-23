@@ -54,7 +54,6 @@ import coil3.request.transformations
 import com.kiyo.music.R
 import com.kiyo.music.core.updater.TikTokHandle
 import com.kiyo.music.core.updater.TikTokUrl
-import com.kiyo.music.core.updater.GithubProfileUrl
 import com.kiyo.music.ui.component.LocalZoomOutOverlayState
 import com.kiyo.music.ui.component.pressBounce
 import com.kiyo.music.ui.screens.donate.showDonateSheet
@@ -77,10 +76,9 @@ internal data class DevPerson(
 internal val DevPeople = listOf(
     DevPerson(
         name = "zychohehe",
-        bio = "developer of this build. lighter, smoother and faster music for everyone, pls star the repo!",
+        bio = "developer of this build. lighter, smoother and faster music for everyone. follow on TikTok!",
         avatar = R.drawable.dev_zycho,
         socials = listOf(
-            DevSocial("GitHub", GithubProfileUrl, "@zychohehe", R.drawable.github),
             DevSocial("TikTok", TikTokUrl, "@$TikTokHandle", R.drawable.tiktok),
         ).filter { it.url.isNotBlank() },
     ),

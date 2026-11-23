@@ -2,9 +2,9 @@
 <resources>
     <string name="supplemental_support_enjoying">Enjoying Kiyo Music?</string>
     <string name="supplemental_support_title">Support Kiyo’s development!</string>
-    <string name="supplemental_support_body">thanks for trying it out! btw, Kiyo Music will always be free, forever yours! &lt;3\n\nIt would be very useful for us if you support the developer, no matter how small it is!! &lt;3\ngiving a star to Kiyo’s repo is already enough. and thanks again!</string>
+    <string name="supplemental_support_body">thanks for trying it out! btw, Kiyo Music will always be free, forever yours! &lt;3\n\nIt would be very useful for us if you support the developer, no matter how small it is!! &lt;3\nfollowing the developer on TikTok is enough. and thank you again!</string>
     <string name="supplemental_support_donate">Join channel!</string>
-    <string name="supplemental_support_star">Star the repo!</string>
+    <string name="supplemental_support_star">Follow on TikTok!</string>
     <string name="supplemental_support_dismiss">get these beggar outta here, No!</string>
     <string name="supplemental_coming_soon">Coming Soon</string>
     <string name="supplemental_coming_soon_detail">%1$s is still a work in progress.</string>

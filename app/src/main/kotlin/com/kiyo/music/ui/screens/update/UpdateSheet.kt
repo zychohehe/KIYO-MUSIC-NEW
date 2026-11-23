@@ -268,7 +268,8 @@ private fun ColumnScope.UpdateSheetContent(
                     onClick = checkAgain,
                 )
                 AnimatedVisibility(
-                    visible = previous != null,
+                    // the earlier version is no longer offered in the about flow
+                    visible = false && previous != null,
                     enter = expandVertically(spring(dampingRatio = 0.85f, stiffness = 420f)) + fadeIn(),
                     exit = shrinkVertically() + fadeOut(),
                 ) {

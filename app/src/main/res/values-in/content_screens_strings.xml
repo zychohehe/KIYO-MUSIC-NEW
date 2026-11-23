@@ -92,11 +92,16 @@
     <string name="donate_whatsapp">Ikuti TikTok @a2unknowwn</string>
     <string name="donate_whatsapp_desc">Kabar, tips, dan build baru lebih dulu</string>
     <string name="donate_github">Ikuti zychohehe di GitHub</string>
-    <string name="donate_note">memberi bintang pada repo dan membagikan aplikasi ini sudah sangat membantu, terima kasih :3</string>
+    <string name="donate_note">mengikuti TikTok dan membagikan aplikasi ini sudah sangat membantu, terima kasih :3</string>
     <string name="album_more_by_artist">Lainnya dari %1$s</string>
     <string name="album_more_by_this_artist">Lainnya dari artis ini</string>
     <string name="album_other_versions">Versi lain</string>
     <string name="album_releases_for_you">Rilis untukmu</string>
     <string name="album_explicit_tag">Eksplisit</string>
     <string name="album_load_failed">Gagal memuat album ini. Ketuk untuk mencoba lagi</string>
+    <string name="about_version_label">Versi %1$s</string>
+    <string name="about_app_tagline">Pemutar musik yang bersih dan cepat. Gratis, tanpa iklan.</string>
+    <string name="about_developer">Developer</string>
+    <string name="about_developer_role">Developer Kiyo Music</string>
+    <string name="about_follow_tiktok">Ikuti di TikTok</string>
 </resources>
