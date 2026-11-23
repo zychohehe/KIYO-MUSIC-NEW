@@ -1714,7 +1714,8 @@ private object AppContentNeverObscured : androidx.compose.runtime.State<Boolean>
 
 val LocalHideAppChrome = staticCompositionLocalOf { mutableStateOf(false) }
 
-private const val UpdateSnoozeWindowMillis = 24L * 60L * 60L * 1000L
+// "Nanti" only hides the popup for an hour, so a new version keeps coming back instead of being forgotten for a day
+private const val UpdateSnoozeWindowMillis = 60L * 60L * 1000L
 
 @Composable
 private fun HomeUpdatePrompt(currentRoute: String?) {

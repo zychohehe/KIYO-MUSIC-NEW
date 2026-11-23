@@ -32,6 +32,9 @@ extensions.configure<ApplicationExtension> {
         versionCode = (project.findProperty("versionCodeOverride") as String?)?.toIntOrNull() ?: 74
         // the version people see is just 5.6.0; the build counter lives in BuildConfig.BUILD_NUMBER (the updater compares it)
         versionName = "5.6.0"
+        // CI passes -PversionNameOverride (major.minor from the line above, patch = run number), so every automatic release
+        // shows a higher version than the last and the in-app updater always sees it as new
+        (project.findProperty("versionNameOverride") as String?)?.takeIf { it.isNotBlank() }?.let { versionName = it }
         val buildNo = (project.findProperty("buildNumber") as String?)?.toIntOrNull() ?: 1281
         buildConfigField("int", "BUILD_NUMBER", buildNo.toString())
 

@@ -99,6 +99,7 @@ import com.kiyo.music.ui.component.pressBounce
 import com.kiyo.music.ui.player.menu.MenuRowSurface
 import com.kiyo.music.ui.player.menu.MenuSurface
 import com.kiyo.music.ui.screens.donate.showSupportSheet
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
 import com.kiyo.music.ui.component.RemoteFocus
 
@@ -106,7 +107,14 @@ import com.kiyo.music.ui.component.RemoteFocus
 fun rememberUpdateState(): androidx.compose.runtime.State<UpdateState> {
     val context = LocalContext.current
     val state = remember { mutableStateOf<UpdateState>(UpdateState.Checking) }
-    LaunchedEffect(Unit) { state.value = checkUpdate(updateChannel(context), force = false) }
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    // asks again every time the app comes back to the front (github is only called once per 15 minutes, the rest comes from the shared copy),
+    // so a release published while the app was in the background still shows up without a full restart
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) {
+            state.value = checkUpdate(updateChannel(context), force = false)
+        }
+    }
     return state
 }
 
