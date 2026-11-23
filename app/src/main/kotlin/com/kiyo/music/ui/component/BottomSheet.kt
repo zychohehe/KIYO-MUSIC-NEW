@@ -133,8 +133,7 @@ private const val PillPressMaxProgress = 0.02f
 private const val PillEdgeFadeEnd = 0.08f
 
 /** The collapsed sheet, the mini player: its corners; how tall it is and how far in from each side are the MiniPillFrame's. */
-private val PillCornerRadius = 20.dp
-private val PillShape = RoundedCornerShape(PillCornerRadius)
+private val PillShape = RoundedCornerShape(50)
 
 private val PillTiltSpring = spring<Float>(
     dampingRatio = Spring.DampingRatioNoBouncy,
@@ -330,8 +329,8 @@ fun BottomSheet(
             // a look's glass that draws its own edge leaves kiyo's hairline and shadow off the mini player
             val moduleGlass = rememberChromeModuleGlass()
             val currentPillFrame by androidx.compose.runtime.rememberUpdatedState(pillFrame)
-            // in the wide bar the pill is a stadium like the bar round it, so it lifts out of it cleanly
-            val pillCorner = if (pillFrame.merged) pillFrame.height / 2 else PillCornerRadius
+            // a stadium on the phone too, the same full round as the tabs pill under it, so the two line up edge to edge
+            val pillCorner = pillFrame.height / 2
 
             val sheetClipShape = remember {
                 object : androidx.compose.ui.graphics.Shape {

@@ -749,7 +749,11 @@ class MainActivity : ComponentActivity() {
                         // level with the tabs, in the same pill
                         bottomInset + navPadding - wideBar.pillGap
                     } else {
-                        bottomInset + navPadding + MiniPlayerHeight
+                        // the tabs pill sits 8dp inside its row; pull the mini player down so only MiniPlayerBottomSpacing
+                        // is left between the two, the same tight gap as the reference
+                        val tabsRowPadding = 8.dp
+                        val tighten = if (slimNav || MiniPlayerBottomSpacing >= tabsRowPadding) 0.dp else tabsRowPadding - MiniPlayerBottomSpacing
+                        bottomInset + navPadding + MiniPlayerHeight - tighten
                     },
                     expandedBound = maxHeight,
                 )
@@ -1375,7 +1379,12 @@ class MainActivity : ComponentActivity() {
                     val showAvatar = !playerOpen && currentRoute != null &&
                         currentRoute != Screens.Home.route &&
                         currentRoute != Screens.Settings.route &&
-                        currentRoute != com.kiyo.music.ui.screens.settings.SettingsListRoute
+                        currentRoute != com.kiyo.music.ui.screens.settings.SettingsListRoute &&
+                        // these pages already draw their own avatar in their header, a second one would sit on top of it
+                        currentRoute != Screens.Search.route &&
+                        currentRoute != Screens.Library.route &&
+                        !currentRoute.startsWith("search/") &&
+                        !currentRoute.startsWith("artist/")
                     if (showAvatar) {
                         Box(Modifier.fillMaxSize()) {
                             com.kiyo.music.ui.component.ProfileAvatarButton(
