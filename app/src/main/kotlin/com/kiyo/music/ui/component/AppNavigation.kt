@@ -401,6 +401,7 @@ private fun SettingsOrb(
         FrostedChromeGlass(
             state = glassState,
             pureBlack = pureBlack,
+            accentWash = null,
             modifier = Modifier.fillMaxSize(),
             tintAlpha = NavBarTintAlpha,
             foundationAlpha = NavBarFoundationAlpha,
