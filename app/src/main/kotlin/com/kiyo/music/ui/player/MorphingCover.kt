@@ -1357,7 +1357,10 @@ private fun MiniSongInfo(
     // measured at a new width (re-laying its text out) and drawn through its offscreen fade
     // layer on every frame of the rest of the open and close.
     val miniTextShown by remember { derivedStateOf { progressProvider() < 0.5f } }
-    if (miniTextShown) Box(
+    // squeezed into the tab row the room for words can get tiny: it fades out as the room runs
+    // short, so a title never wraps letter by letter (it used to show as a stacked "A A")
+    val room = miniTextRoom(endpointsPx.miniTextWidthPx, LocalDensity.current)
+    if (miniTextShown && room > 0f) Box(
         modifier = Modifier
             .morphLayout(
                 progressProvider = progressProvider,
@@ -1366,7 +1369,7 @@ private fun MiniSongInfo(
                 element = MorphElement.TEXT,
             )
             .graphicsLayer {
-                alpha = (1f - (progressProvider() / 0.5f)).coerceIn(0f, 1f)
+                alpha = ((1f - (progressProvider() / 0.5f)) * room).coerceIn(0f, 1f)
 
                 compositingStrategy = CompositingStrategy.Offscreen
             }
@@ -1395,6 +1398,13 @@ private fun MiniSongInfo(
             }
         }
     }
+}
+
+/** how much room the mini title has, 0 to 1: nothing under 48dp, all of it from 96dp on */
+private fun miniTextRoom(widthPx: Float, density: androidx.compose.ui.unit.Density): Float {
+    val low = with(density) { 48.dp.toPx() }
+    val high = with(density) { 96.dp.toPx() }
+    return ((widthPx - low) / (high - low)).coerceIn(0f, 1f)
 }
 
 @Composable

@@ -45,6 +45,8 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.kiyo.music.ui.screens.Screens
+import com.kiyo.music.ui.screens.settings.SettingsListRoute
+import androidx.compose.ui.res.painterResource
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
@@ -267,7 +269,6 @@ fun AppNavigationBar(
     val accentWash = rememberChromeAccentWash()
     // like the reference: the tabs share one glass pill, and Search is its own round button beside it
     val pillItems = remember(navigationItems) { navigationItems.filter { it == Screens.Home || it == Screens.Search || it == Screens.Library } }
-    val searchItem = remember(navigationItems) { navigationItems.firstOrNull { it == Screens.Search } }
     val selectedIndex = pillItems.indexOfFirst { it.route == selectedTabRoute }
     val tabCount = pillItems.size
     val pill = rememberNavPill(selectedIndex)
@@ -348,31 +349,24 @@ fun AppNavigationBar(
             }
             }
 
-            if (searchItem != null) {
-                SearchOrb(
-                    screen = searchItem,
-                    // one tap opens the Search page and puts the cursor in its field, ready to type.
-                    // (before, the tap only asked the page to focus: from any other tab nothing opened)
-                    onSearch = {
-                        onItemClick(searchItem, selectedTabRoute == searchItem.route)
-                        onSearchDoubleTap?.invoke()
-                    },
-                    glassState = glassState,
-                    pureBlack = pureBlack,
-                    accentWash = accentWash,
-                    moduleGlass = moduleGlass,
-                    litTint = litTint,
-                )
-            }
+            // the round button beside the tabs opens Settings: its own menu, apart from the profile
+            // (the profile is the avatar at the top of the page)
+            SettingsOrb(
+                onOpen = { onOpenRoute(SettingsListRoute) },
+                glassState = glassState,
+                pureBlack = pureBlack,
+                accentWash = accentWash,
+                moduleGlass = moduleGlass,
+                litTint = litTint,
+            )
         }
     }
 }
 
-/** Search as its own round glass button next to the tab pill: one tap goes straight into typing. */
+/** Settings as its own round glass button next to the tab pill, apart from the profile. */
 @Composable
-private fun SearchOrb(
-    screen: Screens,
-    onSearch: () -> Unit,
+private fun SettingsOrb(
+    onOpen: () -> Unit,
     glassState: GlassState,
     pureBlack: Boolean,
     accentWash: (() -> Color)?,
@@ -380,7 +374,6 @@ private fun SearchOrb(
     litTint: Color,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val icon = coil3.compose.rememberAsyncImagePainter(model = screen.iconIdInactive)
 
     Box(
         modifier = Modifier
@@ -396,7 +389,7 @@ private fun SearchOrb(
             .clickable(
                 interactionSource = interactionSource,
                 indication = RemoteFocus,
-                onClick = onSearch,
+                onClick = onOpen,
             ),
         contentAlignment = Alignment.Center
     ) {
@@ -409,9 +402,9 @@ private fun SearchOrb(
             foundationAlpha = NavBarTintAlpha,
         )
         Icon(
-            painter = icon,
-            contentDescription = stringResource(screen.titleId),
-            tint = Color.White,
+            painter = painterResource(R.drawable.settings),
+            contentDescription = stringResource(R.string.settings),
+            tint = Color.White.copy(alpha = UnlitIconAlpha),
             modifier = Modifier.size(24.dp),
         )
     }
