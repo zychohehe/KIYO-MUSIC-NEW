@@ -415,8 +415,19 @@ object LyricsUtils {
         val tagOffsetMs = decodedLyrics.lineSequence()
             .firstNotNullOfOrNull { LRC_OFFSET_TAG_REGEX.matchEntire(it.trim())?.groupValues?.get(1)?.toLongOrNull() }
             ?: 0L
-        return shiftByOffsetTag(fixWordSpacing(parsed), tagOffsetMs)
+        return lineSyncOnly(shiftByOffsetTag(fixWordSpacing(parsed), tagOffsetMs))
     }
+
+    /**
+     * Every song gets the same animation: the whole line lights up at once, like Spotify. Some lyrics come with word timing and
+     * some don't, and the lyrics page sweeps word by word only when it has that timing, so the same app looked like two
+     * different ones from song to song. With the word timing left out, every renderer takes its whole-line path. Set to false
+     * to bring the word-by-word sweep back for the songs that have it.
+     */
+    const val LINE_SYNC_ONLY = true
+
+    private fun lineSyncOnly(entries: List<LyricsEntry>): List<LyricsEntry> =
+        if (!LINE_SYNC_ONLY) entries else entries.map { if (it.words == null && it.syllables == null) it else it.copy(words = null, syllables = null) }
 
     // [offset:+500] means "show every line 500 ms sooner" (the LRC convention), so the times move earlier by that much
     private val LRC_OFFSET_TAG_REGEX = "\\[offset:\\s*([+-]?\\d+)\\s*\\]".toRegex(RegexOption.IGNORE_CASE)
