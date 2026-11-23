@@ -41,6 +41,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -78,6 +79,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlin.math.max
 import kotlin.math.min
+
+private val GlowBlue = Color(0xFF6C8CA8)
+private val GlowViolet = Color(0xFF8A6CFF)
 
 @Composable
 fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
@@ -138,7 +142,7 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
                 .drawBehind {
                     // the glow drifts between steel blue and violet
                     val k = 0.5f + 0.5f * kotlin.math.sin(clock.seconds.floatValue * 0.6f)
-                    val c = androidx.compose.ui.graphics.lerp(Color(0xFF6C8CA8), Color(0xFF8A6CFF), k)
+                    val c = androidx.compose.ui.graphics.lerp(GlowBlue, GlowViolet, k)
                     drawRect(
                         Brush.radialGradient(listOf(c.copy(alpha = 0.18f), c.copy(alpha = 0.08f), Color.Transparent)),
                     )
@@ -251,8 +255,11 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
                 .graphicsLayer { alpha = enter.value * (1f - leave) },
         ) {
             val full = stringResource(R.string.welcome_finale)
+            // only recompose when a new letter appears, not on every frame of the animation
+            val shownChars by remember(full) { derivedStateOf { (full.length * finale.value).toInt() } }
+            val startReady by remember { derivedStateOf { finale.value >= 0.95f } }
             Text(
-                text = full.take((full.length * finale.value).toInt()),
+                text = full.take(shownChars),
                 style = TextStyle(
                     brush = Brush.linearGradient(listOf(Color(0xFFFFFFFF), Color(0xFFA9BCD0), Color(0xFF8FA6FF))),
                     fontSize = (28f * u).sp,
@@ -276,7 +283,7 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
-                        enabled = finale.value >= 0.95f,
+                        enabled = startReady,
                         role = Role.Button,
                     ) {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)

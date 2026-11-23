@@ -30,7 +30,10 @@ extensions.configure<ApplicationExtension> {
         // CI passes -PbuildNumber / -PversionCodeOverride so every automatic release is newer than the last
         // one (the in-app updater compares them); local builds keep the defaults
         versionCode = (project.findProperty("versionCodeOverride") as String?)?.toIntOrNull() ?: 74
-        versionName = "5.6.0 build#${(project.findProperty("buildNumber") as String?)?.toIntOrNull() ?: 1281}"
+        // the version people see is just 5.6.0; the build counter lives in BuildConfig.BUILD_NUMBER (the updater compares it)
+        versionName = "5.6.0"
+        val buildNo = (project.findProperty("buildNumber") as String?)?.toIntOrNull() ?: 1281
+        buildConfigField("int", "BUILD_NUMBER", buildNo.toString())
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

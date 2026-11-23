@@ -240,7 +240,8 @@ private suspend fun fetchReleases(): Result<List<ParsedRelease>> = withContext(D
 
 fun isNewerThanInstalled(candidateVersionText: String): Boolean {
     val candidate = parseFullVersion(candidateVersionText)
-    val installed = parseFullVersion(BuildConfig.VERSION_NAME)
+    // the version name no longer carries the build counter, so it comes from BuildConfig
+    val installed = parseFullVersion(BuildConfig.VERSION_NAME).copy(buildNumber = BuildConfig.BUILD_NUMBER)
     return candidate > installed
 }
 

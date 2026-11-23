@@ -105,6 +105,12 @@
     #public static int e(...);
 }
 
+## Timber verbose/debug lines are never planted in release; this drops the calls and their string building
+-assumenosideeffects class timber.log.Timber* {
+    public *** v(...);
+    public *** d(...);
+}
+
 # Generated automatically by the Android Gradle plugin.
 -dontwarn java.beans.BeanDescriptor
 -dontwarn java.beans.BeanInfo

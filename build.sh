@@ -33,7 +33,7 @@ BETA_NOTICE_FILE="app/src/main/kotlin/com/kiyo/music/ui/screens/beta/BetaNoticeS
 cleanup() {
     # a nightly's fourth number only lives for its own build
     if [ -n "$NIGHTLY_NUMBER" ] && [ -n "$BASE_VERSION" ] && [ -n "$BUILD_ATTEMPT" ]; then
-        sed_in_place "s/versionName = \".*\"/versionName = \"$BASE_VERSION build#$BUILD_ATTEMPT\"/g" app/build.gradle.kts
+        sed_in_place "s/versionName = \".*\"/versionName = \"$BASE_VERSION\"/g" app/build.gradle.kts
     fi
     if [ "$IS_CUSTOM_BUILD" = true ]; then
         echo ""
@@ -175,7 +175,8 @@ if [ "$SKIP_BUILD" = false ]; then
         GRADLE_FLAGS="-Pnightly=true"
         echo "Building nightly $VERSION_LABEL..."
     fi
-    sed_in_place "s/versionName = \".*\"/versionName = \"$VERSION_LABEL build#$BUILD_ATTEMPT\"/g" app/build.gradle.kts
+    sed_in_place "s/versionName = \".*\"/versionName = \"$VERSION_LABEL\"/g" app/build.gradle.kts
+    GRADLE_FLAGS="$GRADLE_FLAGS -PbuildNumber=$BUILD_ATTEMPT"
 
     # update beta notice
     if [ -f "$BETA_NOTICE_FILE" ]; then
