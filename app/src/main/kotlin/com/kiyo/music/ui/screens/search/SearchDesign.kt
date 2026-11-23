@@ -412,8 +412,10 @@ fun SearchAvatar(
     modifier: Modifier = Modifier,
     size: Dp = 36.dp,
 ) {
-    val model = remember(imageUrl) {
-        val url = imageUrl?.trim().orEmpty()
+    // no photo picked in the profile: the signed-in account's photo, the same two sources Home reads
+    val (accountImage, _) = com.kiyo.music.utils.rememberPreference(com.kiyo.music.constants.AccountImageUrlKey, "")
+    val model = remember(imageUrl, accountImage) {
+        val url = (imageUrl?.takeIf { it.isNotBlank() } ?: accountImage).trim()
         when {
             url.isEmpty() -> null
             url.startsWith("content://") || url.startsWith("file://") || url.startsWith("http://") || url.startsWith("https://") -> url

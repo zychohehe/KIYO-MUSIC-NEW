@@ -50,7 +50,6 @@ import com.kiyo.music.constants.BlurQualityKey
 import com.kiyo.music.constants.CanvasThumbnailAnimationKey
 import com.kiyo.music.constants.CrossmixMode
 import com.kiyo.music.constants.DataSaverKey
-import com.kiyo.music.constants.DiscordAccessTokenKey
 import com.kiyo.music.constants.FloatingLyricsKey
 import com.kiyo.music.constants.HomeStyleKey
 import com.kiyo.music.constants.LarpModeKey
@@ -67,7 +66,6 @@ import com.kiyo.music.playback.audio.AudioOutputs
 import com.kiyo.music.ui.component.SettingsHighlight
 import com.kiyo.music.ui.screens.devices.DeviceIntegrationRoute
 import com.kiyo.music.ui.screens.settings.importsync.ImportSyncRoute
-import com.kiyo.music.ui.screens.settings.integrations.discord.DiscordRoute
 import com.kiyo.music.ui.theme.InterFontFamily
 import com.kiyo.music.utils.PreferencesCache
 import com.kiyo.music.utils.dataStore
@@ -273,13 +271,6 @@ private val RecommendedOptions = listOf(
     ),
 
     // other apps and devices
-    RecommendedSetting(
-        titleRes = R.string.settings_rec_discord,
-        pageRes = R.string.integrations,
-        route = DiscordRoute,
-        icon = { painterResource(R.drawable.discord) },
-        applies = { it.prefs[DiscordAccessTokenKey].isNullOrEmpty() },
-    ),
     RecommendedSetting(
         titleRes = R.string.settings_rec_import,
         pageRes = R.string.experimental_import_sync_title,

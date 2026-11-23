@@ -743,17 +743,18 @@ class MainActivity : ComponentActivity() {
                 val navRowHeight = wideBar?.rowHeight ?: NavigationBarHeight
                 val navPadding = if (slimNav && wideBar == null) SlimNavBarHeight else navRowHeight
 
+                // the tabs pill sits 8dp inside its row; pull the mini player down so only MiniPlayerBottomSpacing
+                // is left between the two, the same tight gap as the reference
+                val tabsRowPadding = 8.dp
+                val miniTighten = if (slimNav || wideBar != null || MiniPlayerBottomSpacing >= tabsRowPadding) 0.dp else tabsRowPadding - MiniPlayerBottomSpacing
+
                 val playerBottomSheetState = rememberBottomSheetState(
                     dismissedBound = 0.dp,
                     collapsedBound = if (wideBar != null) {
                         // level with the tabs, in the same pill
                         bottomInset + navPadding - wideBar.pillGap
                     } else {
-                        // the tabs pill sits 8dp inside its row; pull the mini player down so only MiniPlayerBottomSpacing
-                        // is left between the two, the same tight gap as the reference
-                        val tabsRowPadding = 8.dp
-                        val tighten = if (slimNav || MiniPlayerBottomSpacing >= tabsRowPadding) 0.dp else tabsRowPadding - MiniPlayerBottomSpacing
-                        bottomInset + navPadding + MiniPlayerHeight - tighten
+                        bottomInset + navPadding + MiniPlayerHeight - miniTighten
                     },
                     expandedBound = maxHeight,
                 )
@@ -1159,7 +1160,8 @@ class MainActivity : ComponentActivity() {
                                                         // the mini player follows the tabs down, to just above the screen's bottom edge
                                                         if (wideBar == null) {
                                                             val progress = playerBottomSheetState.progress.coerceIn(0f, 1f)
-                                                            translationY = navPadding.toPx() * navHide.value * (1f - progress)
+                                                            // lands centred on the round tab and the search button: their middle is tabsRowPadding + half a pill above the screen's bottom inset
+                                                            translationY = (navPadding - miniTighten - tabsRowPadding).toPx() * navHide.value * (1f - progress)
                                                         }
                                                     },
                                             )

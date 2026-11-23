@@ -54,7 +54,6 @@ import androidx.navigation.NavController
 import com.kiyo.music.R
 import com.kiyo.music.ui.screens.devices.showDeviceIntegration
 import com.kiyo.music.ui.screens.settings.importsync.YouTubeSyncRoute
-import com.kiyo.music.ui.screens.settings.integrations.discord.DiscordRoute
 import com.kiyo.music.constants.ProfilePicUriKey
 import com.kiyo.music.ui.component.GlassState
 import com.kiyo.music.ui.component.SettingsHighlight
@@ -234,7 +233,6 @@ private val SettingsIndex = listOf(
     SettingsEntry("YouTube Music", "Audio Lab", "audio_quality", "youtube turn off disable provider only monochrome apple music"),
 
     // Integrations
-    SettingsEntry("Discord", "Integrations", DiscordRoute, "discord rich presence rpc status activity listening playing profile behaviour pause clear"),
     SettingsEntry("YouTube Music", "Integrations", YouTubeSyncRoute, "youtube ytm sync account sign in likes library playlists history"),
 
     // Storage

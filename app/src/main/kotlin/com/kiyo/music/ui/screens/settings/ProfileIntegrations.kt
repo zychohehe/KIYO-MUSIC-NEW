@@ -39,7 +39,6 @@ import androidx.navigation.NavController
 import com.kiyo.music.R
 import com.kiyo.music.ui.screens.settings.importsync.YouTubeSyncRoute
 import com.kiyo.music.ui.screens.settings.integrations.backup.BackupRoute
-import com.kiyo.music.ui.screens.settings.integrations.discord.DiscordRoute
 import com.kiyo.music.ui.theme.InterFontFamily
 
 // the youtube music logo is a red disc, this fills its corners so it sits as a tile like the others
@@ -78,12 +77,6 @@ internal fun ProfileSectionTitle(text: String) {
 internal fun ProfileIntegrations(navController: NavController) {
     Column(Modifier.fillMaxWidth()) {
         ProfileSectionTitle(stringResource(R.string.integrations))
-        IntegrationLine(
-            name = "Discord",
-            description = stringResource(R.string.integration_discord_desc),
-            icon = R.drawable.integration_discord,
-            onClick = { navController.navigate(DiscordRoute) },
-        )
         IntegrationLine(
             name = stringResource(R.string.module_youtube_name),
             description = stringResource(R.string.module_youtube_desc),

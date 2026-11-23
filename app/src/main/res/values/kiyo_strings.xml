@@ -361,7 +361,7 @@
     <string name="lyrics_romanize_macedonian">Romanize Macedonian lyrics</string>
     <string name="lyrics_romanize_as_main">Show romanized lyrics as main</string>
 
-    <string name="integrations">Integrations</string>
+    <string name="integrations">Account login</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <!-- Integrations page, and signing in to Last.fm and Libre.fm right in the app -->

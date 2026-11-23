@@ -311,7 +311,7 @@
     <string name="google_cast_description">Aktifkan casting audio ke Chromecast dan perangkat Cast lainnya</string>
     <string name="lyrics_romanize_macedonian">Romanisasi lirik Makedonia</string>
     <string name="lyrics_romanize_as_main">Tampilkan lirik romanisasi sebagai lirik utama</string>
-    <string name="integrations">Integrasi</string>
+    <string name="integrations">Login akun</string>
     <string name="username">Nama pengguna</string>
     <string name="password">Kata sandi</string>
     <string name="integration_discord_desc">Rich Presence</string>

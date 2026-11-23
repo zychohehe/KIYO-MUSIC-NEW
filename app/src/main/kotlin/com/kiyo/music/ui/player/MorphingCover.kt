@@ -257,6 +257,9 @@ internal val LyricsHeaderArtTopFromStatusBar = 28.dp
 
 private val SquaredCoverCornerRadius = 22.dp
 
+// the mini player's cover: rounder than a list thumbnail, so it follows the stadium pill's curve with the same 8dp inset
+private val MiniCoverCornerRadius = 16.dp
+
 // room between two squared cards while they swipe, so one card leaves whole before the next arrives
 private val SquaredCardGap = 20.dp
 
@@ -885,7 +888,7 @@ fun MorphingCover(
                             0.dp
                         }
                         // the corners round with the size, so a cover still travelling small keeps its thumbnail corners
-                        val base = lerp(ThumbnailCornerRadius, expandedRadius, coverGrowth(p, endpointsPx.growLate))
+                        val base = lerp(MiniCoverCornerRadius, expandedRadius, coverGrowth(p, endpointsPx.growLate))
                         artShape.radius = lerp(base, LyricsHeaderCornerRadius, lyricsProgressProvider())
                         shape = artShape
                     }
