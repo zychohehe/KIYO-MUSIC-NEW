@@ -2,6 +2,20 @@
 
 package com.kiyo.music.ui.screens.update
 
+import android.net.Uri
+import android.view.TextureView
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -58,6 +72,42 @@ fun PopupSheetState.showAboutSheet(onOpenDevSpace: (Int) -> Unit = {}) {
     }
 }
 
+// the banner at the top of the about sheet: a muted, looping clip that stands in for the old logo tile.
+// it plays only while the app is on screen and frees its player the moment the sheet closes
+@Composable
+private fun AboutBannerVideo(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val lifecycleState by LocalLifecycleOwner.current.lifecycle.currentStateAsState()
+    val player = remember {
+        ExoPlayer.Builder(context).build().apply {
+            // no sound and no audio focus, so the banner never interrupts the music that is playing
+            trackSelectionParameters = trackSelectionParameters.buildUpon()
+                .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, true)
+                .build()
+            volume = 0f
+            repeatMode = Player.REPEAT_MODE_ONE
+            setMediaItem(MediaItem.fromUri(Uri.parse("android.resource://${context.packageName}/${R.raw.about_banner}")))
+            prepare()
+        }
+    }
+    DisposableEffect(player) { onDispose { player.release() } }
+    LaunchedEffect(player, lifecycleState) {
+        player.playWhenReady = lifecycleState.isAtLeast(Lifecycle.State.RESUMED)
+    }
+    // the clip is 16:9, so the box is too and the picture fills it exactly; the surface color shows until the first frame
+    Box(
+        modifier = modifier
+            .aspectRatio(16f / 9f)
+            .clip(RoundedCornerShape(22.dp))
+            .background(MenuRowSurface),
+    ) {
+        AndroidView(
+            factory = { ctx -> TextureView(ctx).also { player.setVideoTextureView(it) } },
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
+}
+
 @Composable
 private fun ColumnScope.AboutSheetContent(popup: PopupSheetState) {
     val context = LocalContext.current
@@ -73,20 +123,7 @@ private fun ColumnScope.AboutSheetContent(popup: PopupSheetState) {
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Box(
-                modifier = Modifier
-                    .size(84.dp)
-                    .clip(RoundedCornerShape(26.dp))
-                    .background(MenuRowSurface),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_kiyo_mark),
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(42.dp),
-                )
-            }
+            AboutBannerVideo(modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(16.dp))
             Text(
                 text = "Kiyo Music",

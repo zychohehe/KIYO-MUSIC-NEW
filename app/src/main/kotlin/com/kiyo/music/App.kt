@@ -31,6 +31,7 @@ import com.kiyo.music.utils.CrashHandler
 import com.kiyo.music.utils.PreferencesCache
 import com.kiyo.music.utils.cipher.CipherDeobfuscator
 import com.kiyo.music.utils.dataStore
+import com.kiyo.music.utils.get
 import com.kiyo.music.utils.AppProxy
 import com.kiyo.music.utils.BotDetectionMitigator
 import com.kiyo.music.utils.reportException
@@ -42,7 +43,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -341,9 +341,8 @@ class App : Application(), SingletonImageLoader.Factory {
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader {
-        val cacheSize = runBlocking {
-            dataStore.data.map { it[MaxImageCacheSizeKey] ?: 512 }.first()
-        }
+        // from the already-loaded settings cache, no extra blocking read of the file on the main thread
+        val cacheSize = dataStore[MaxImageCacheSizeKey] ?: 512
         return ImageLoader.Builder(this).apply {
             components {
                 add(SvgDecoder.Factory())

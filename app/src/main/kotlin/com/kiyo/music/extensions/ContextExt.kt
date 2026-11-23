@@ -10,19 +10,14 @@ import com.kiyo.music.constants.InnerTubeCookieKey
 import com.kiyo.music.constants.YtmSyncKey
 import com.kiyo.music.utils.dataStore
 import com.kiyo.music.utils.get
-import kotlinx.coroutines.runBlocking
 
 fun Context.isSyncEnabled(): Boolean {
-    return runBlocking {
-        dataStore.get(YtmSyncKey, true) && isUserLoggedIn()
-    }
+    return dataStore.get(YtmSyncKey, true) && isUserLoggedIn()
 }
 
 fun Context.isUserLoggedIn(): Boolean {
-    return runBlocking {
-        val cookie = dataStore[InnerTubeCookieKey] ?: ""
-        "SAPISID" in parseCookieString(cookie) && isInternetConnected()
-    }
+    val cookie = dataStore[InnerTubeCookieKey] ?: ""
+    return "SAPISID" in parseCookieString(cookie) && isInternetConnected()
 }
 
 fun Context.isInternetConnected(): Boolean {
