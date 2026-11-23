@@ -114,6 +114,13 @@ val EnableNetEaseKey = booleanPreferencesKey("enableNetEase")
 val EnableQQMusicKey = booleanPreferencesKey("enableQQMusic")
 val EnableDeezerKey = booleanPreferencesKey("enableDeezer")
 val EnableLrcRedKey = booleanPreferencesKey("enableLrcRed")
+val EnableBiniLyricsKey = booleanPreferencesKey("enableBiniLyrics")
+val EnableBetterLyricsPortatoKey = booleanPreferencesKey("enableBetterLyricsPortato")
+val EnableUnisonKey = booleanPreferencesKey("enableUnison")
+val EnableMusixmatchLyricsKey = booleanPreferencesKey("enableMusixmatchLyrics")
+val EnableGeniusLyricsKey = booleanPreferencesKey("enableGeniusLyrics")
+// a PaxSenix API key, only the PaxSenix Spotify and Musixmatch sources need one; nothing is bundled
+val PaxsenixApiKey = stringPreferencesKey("paxsenixApiKey")
 val HideExplicitKey = booleanPreferencesKey("hideExplicit")
 val HideVideoSongsKey = booleanPreferencesKey("hideVideoSongs")
 // no switch for it in settings, so every reader defaults it to on and shorts stay out

@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +35,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.kiyo.music.R
 import com.kiyo.music.constants.DisableBlurKey
@@ -45,13 +48,13 @@ import com.kiyo.music.ui.screens.setup.onboarding.Onb
 import com.kiyo.music.utils.rememberPreference
 import com.kiyo.music.viewmodels.OnboardingViewModel
 
-// the onboarding is two screens now: the card that says hello, and "kamu siap berangkat" (the welcome page is gone)
-private enum class Step { Hello, Done }
+// the onboarding is three screens: welcome, the card that says hello, and "kamu siap berangkat"
+private enum class Step { Welcome, Hello, Done }
 
 /** pages that play once and move on by themselves, back never returns to them */
 private val AutoSteps = setOf(Step.Hello, Step.Done)
 
-/** the onboarding flow: hello card, all set. no welcome page, no import screens any more */
+/** the onboarding flow: welcome, hello card, all set. no import screens any more */
 @Composable
 fun SetupWizardScreen(
     onComplete: (String, Uri?) -> Unit,
@@ -63,13 +66,13 @@ fun SetupWizardScreen(
     // every run of onboarding starts clean
     LaunchedEffect(Unit) { vm.reset() }
 
-    val history = remember { mutableStateListOf(Step.Hello) }
+    val history = remember { mutableStateListOf(Step.Welcome) }
     var forward by remember { mutableStateOf(true) }
     val step = history.last()
 
     fun go(next: Step, replaceCurrent: Boolean = false) {
         forward = true
-        if (replaceCurrent && history.isNotEmpty()) history.removeAt(history.lastIndex)
+        if (replaceCurrent && history.size > 1) history.removeAt(history.lastIndex)
         history.add(next)
     }
 
@@ -78,6 +81,9 @@ fun SetupWizardScreen(
         forward = false
         history.removeAt(history.lastIndex)
     }
+
+    var isLeavingWelcome by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     // the blur check runs on the hello card; a phone that struggles gets blur turned off, and settings can turn it back on
     val (disableBlur, onDisableBlurChange) = rememberPreference(DisableBlurKey, defaultValue = false)
@@ -115,6 +121,22 @@ fun SetupWizardScreen(
             modifier = Modifier.fillMaxSize(),
         ) { current ->
             when (current) {
+                // the welcome page runs to the top of the sheet under the handle, a tap anywhere on it moves on
+                Step.Welcome -> WelcomeStep(
+                    isHiding = isLeavingWelcome,
+                    onNext = {
+                        // a second tap while she's waving goodbye would skip a page
+                        if (!isLeavingWelcome) {
+                            isLeavingWelcome = true
+                            scope.launch {
+                                delay(400)
+                                go(Step.Hello)
+                                isLeavingWelcome = false
+                            }
+                        }
+                    },
+                )
+
                 Step.Hello -> HelloCardStep(
                     card = card,
                     onProbe = { probe ->

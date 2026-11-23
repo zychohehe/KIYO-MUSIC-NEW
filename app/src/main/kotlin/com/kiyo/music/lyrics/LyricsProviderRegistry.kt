@@ -3,23 +3,27 @@
 package com.kiyo.music.lyrics
 
 import com.kiyo.music.constants.PreferredLyricsProvider
-import com.music.directlyrics.LrcRed
 
 object LyricsProviderRegistry {
+    // the lyrics sources come from :providers:beatlyrics (taken from Beatcord); the three YouTube ones
+    // stay on the app's own YouTube code
     private val providerMap = mapOf(
-        "YouLyPlus"       to YouLyPlusLyricsProvider,
-        "Paxsenix"        to PaxSenixLyricsProvider,
-        "BetterLyrics"    to BetterLyricsProvider,
-        "SimpMusic"       to SimpMusicLyricsProvider,
-        "LrcLib"          to LrcLibLyricsProvider,
-        "Kugou"           to KuGouLyricsProvider,
-        "NetEase"         to NetEaseLyricsProvider,
-        "QQMusic"         to QQMusicLyricsProvider,
-        "Deezer"          to DeezerLyricsProvider,
-        "LrcRed"          to LrcRedLyricsProvider,
-        "YouTubeSubtitle" to YouTubeSubtitleLyricsProvider,
-        "YouTubeMusic"    to YouTubeLyricsProvider,
-        "YouTubeCaptions" to YouTubeCaptionsLyricsProvider,
+        "LrcRed"             to BeatLyricsProviders.LrcRed,
+        "BiniLyrics"         to BeatLyricsProviders.BiniLyrics,
+        "BetterLyrics"       to BeatLyricsProviders.BetterLyrics,
+        "BetterLyricsPortato" to BeatLyricsProviders.BetterLyricsPortato,
+        "Paxsenix"           to BeatLyricsProviders.Paxsenix,
+        "PaxsenixSpotify"    to BeatLyricsProviders.PaxsenixSpotify,
+        "PaxsenixMusixmatch" to BeatLyricsProviders.PaxsenixMusixmatch,
+        "YouLyPlus"          to BeatLyricsProviders.YouLyPlus,
+        "Unison"             to BeatLyricsProviders.Unison,
+        "Kugou"              to BeatLyricsProviders.Kugou,
+        "LrcLib"             to BeatLyricsProviders.LrcLib,
+        "Musixmatch"         to BeatLyricsProviders.Musixmatch,
+        "Genius"             to BeatLyricsProviders.Genius,
+        "YouTubeSubtitle"    to YouTubeSubtitleLyricsProvider,
+        "YouTubeMusic"       to YouTubeLyricsProvider,
+        "YouTubeCaptions"    to YouTubeCaptionsLyricsProvider,
     )
 
     // lyrics from modules that are on, set by the module registry; a module switched off simply isn't in here
@@ -46,22 +50,25 @@ object LyricsProviderRegistry {
     fun serializeProviderOrder(providers: List<String>): String =
         providers.filter { it in providerNames }.joinToString(",")
 
-    // NetEase, QQ Music and KuGou near the end: they are Chinese services, and LyricsHelper only
-    // believes them first-hand for Chinese songs. NetEase leads them because it often has word
-    // timing. YouTube's auto captions last of all - they are speech recognition.
+    // Beatcord's order: the word-timed Apple sources first, then the community ones, the whole-line
+    // databases after, plain text (Genius) next to last. KuGou is a Chinese service, so LyricsHelper only
+    // believes it first-hand for Chinese songs. YouTube's auto captions last of all - they are speech recognition.
     fun getDefaultProviderOrder(): List<String> = moduleProviders.keys.toList() + listOf(
-        "BetterLyrics",
-        "YouLyPlus",
-        "Paxsenix",
         "LrcRed",
-        "SimpMusic",
-        "LrcLib",
-        "Deezer",
+        "BiniLyrics",
+        "BetterLyrics",
+        "BetterLyricsPortato",
+        "Paxsenix",
+        "PaxsenixSpotify",
+        "PaxsenixMusixmatch",
+        "YouLyPlus",
+        "Unison",
         "YouTubeSubtitle",
         "YouTubeMusic",
-        "NetEase",
-        "QQMusic",
         "Kugou",
+        "LrcLib",
+        "Musixmatch",
+        "Genius",
         "YouTubeCaptions",
     )
 
@@ -72,26 +79,30 @@ object LyricsProviderRegistry {
         PreferredLyricsProvider.LRCLIB        -> "LrcLib"
         PreferredLyricsProvider.KUGOU         -> "Kugou"
         PreferredLyricsProvider.BETTER_LYRICS -> "BetterLyrics"
-        PreferredLyricsProvider.SIMPMUSIC     -> "SimpMusic"
+        // SimpMusic is switched off in the new lyrics set; Unison is the nearest community database
+        PreferredLyricsProvider.SIMPMUSIC     -> "Unison"
         PreferredLyricsProvider.YOULYPLUS     -> "YouLyPlus"
         PreferredLyricsProvider.PAXSENIX      -> "Paxsenix"
     }
 
     fun getDisplayName(name: String): String = when (name) {
-        "YouLyPlus"       -> "YouLyPlus"
-        "Paxsenix"        -> "PaxSenix"
-        "BetterLyrics"    -> "Apple Music"
-        "SimpMusic"       -> "SimpMusic"
-        "LrcLib"          -> "LrcLib"
-        "Kugou"           -> "KuGou"
-        "NetEase"         -> "NetEase"
-        "QQMusic"         -> "QQ Music"
-        "Deezer"          -> "Deezer"
-        "LrcRed"          -> "lrc.red"
-        "YouTubeSubtitle" -> "YouTube Subtitle"
-        "YouTubeMusic"    -> "YouTube Music"
-        "YouTubeCaptions" -> "YouTube Auto Captions"
-        else              -> moduleProviders[name]?.displayName ?: name
+        "LrcRed"              -> "lrc.red"
+        "BiniLyrics"          -> "BiniLyrics"
+        "BetterLyrics"        -> "Apple Music"
+        "BetterLyricsPortato" -> "QQ Music (Portato)"
+        "Paxsenix"            -> "PaxSenix"
+        "PaxsenixSpotify"     -> "PaxSenix: Spotify"
+        "PaxsenixMusixmatch"  -> "PaxSenix: Musixmatch"
+        "YouLyPlus"           -> "LyricsPlus"
+        "Unison"              -> "Unison"
+        "Kugou"               -> "KuGou"
+        "LrcLib"              -> "LrcLib"
+        "Musixmatch"          -> "Musixmatch"
+        "Genius"              -> "Genius"
+        "YouTubeSubtitle"     -> "YouTube Subtitle"
+        "YouTubeMusic"        -> "YouTube Music"
+        "YouTubeCaptions"     -> "YouTube Auto Captions"
+        else                  -> moduleProviders[name]?.displayName ?: name
     }
 
     /**
@@ -104,13 +115,12 @@ object LyricsProviderRegistry {
         "YouLyPlus"    -> LyricsProject("LyricsPlus", "https://github.com/ibratabian17/LyricsPlus")
         "BetterLyrics" -> LyricsProject("Better Lyrics", "https://github.com/better-lyrics/better-lyrics")
         "LrcLib"       -> LyricsProject("LRCLIB", "https://github.com/tranxuanthang/lrclib")
-        "SimpMusic"    -> LyricsProject("SimpMusic", "https://github.com/maxrave-dev/SimpMusic")
         else           -> null
     }
 
     // lrc.red lets anyone use its lyrics as long as the app links back to it wherever they show
     fun getWebsite(name: String): String? = when (name) {
-        "LrcRed" -> LrcRed.BaseUrl
+        "LrcRed" -> "https://lrc.red/"
         else     -> null
     }
 }

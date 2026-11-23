@@ -419,83 +419,15 @@ object LyricsUtils {
     }
 
     /**
-     * When true, word timing is thrown away and every song lights a whole line at once. It is false
-     * now: lyrics that carry word timing sweep word by word, and lyrics that only have line timing
-     * get estimated word timing too (see [estimateWordTimings]), so every song moves the same way.
+     * Every song gets the same animation: the whole line lights up at once, like Spotify. Some lyrics come with word timing and
+     * some don't, and the lyrics page sweeps word by word only when it has that timing, so the same app looked like two
+     * different ones from song to song. With the word timing left out, every renderer takes its whole-line path. Set to false
+     * to bring the word-by-word sweep back for the songs that have it.
      */
-    const val LINE_SYNC_ONLY = false
+    const val LINE_SYNC_ONLY = true
 
     private fun lineSyncOnly(entries: List<LyricsEntry>): List<LyricsEntry> =
         if (!LINE_SYNC_ONLY) entries else entries.map { if (it.words == null && it.syllables == null) it else it.copy(words = null, syllables = null) }
-
-    // what the lyrics page and the cards show: the song as parsed, with word timing guessed for lines that only have line timing. Grading (syncKind) keeps using parseLyrics, so a guess never makes a line-synced source look word-synced.
-    private fun parseForDisplay(lyrics: String): List<LyricsEntry> = estimateWordTimings(parseLyrics(lyrics))
-
-    // longest a line is allowed to take to sing when its real length is unknown, so a long gap before the next line doesn't stretch the sweep across it
-    private const val EstimatedMinLineSec = 0.6
-    private const val EstimatedSecPerChar = 0.075
-    private const val EstimatedMaxLineSec = 8.0
-
-    private fun isCjkChar(cp: Int): Boolean = when (Character.UnicodeScript.of(cp)) {
-        Character.UnicodeScript.HAN,
-        Character.UnicodeScript.HIRAGANA,
-        Character.UnicodeScript.KATAKANA,
-        Character.UnicodeScript.HANGUL -> true
-        else -> false
-    }
-
-    /**
-     * Gives every line that has only a start time its own word timing, so the lyrics page can sweep
-     * word by word for every song, not only the ones whose source sends word timing.
-     *
-     * This is an estimate, not the singer's real timing: the line's time is real, and the words are
-     * spread across it in proportion to their length, ending before the next line starts (or after
-     * a length-based time when the gap to the next line is long, such as an instrumental break).
-     * Lines that already have real word timing are left exactly as they are, and so is unsynced
-     * text, which has no time to spread words over.
-     */
-    fun estimateWordTimings(entries: List<LyricsEntry>): List<LyricsEntry> {
-        if (entries.isEmpty() || isUnsynced(entries)) return entries
-        return entries.mapIndexed { index, entry ->
-            if (!entry.words.isNullOrEmpty() || !entry.syllables.isNullOrEmpty()) return@mapIndexed entry
-            val text = entry.text
-            if (text.isBlank()) return@mapIndexed entry
-
-            val pieces: List<String> = text.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }.let { spaced ->
-                if (spaced.size >= 2) {
-                    // a cjk word has no inner spaces, but it is still sung a character at a time
-                    spaced.flatMap { piece ->
-                        if (piece.codePoints().anyMatch { isCjkChar(it) }) {
-                            piece.codePoints().toArray().map { String(Character.toChars(it)) }
-                        } else listOf(piece)
-                    }
-                } else if (spaced.size == 1 && spaced[0].codePoints().allMatch { isCjkChar(it) || !Character.isLetter(it) } &&
-                    spaced[0].codePoints().anyMatch { isCjkChar(it) }
-                ) {
-                    spaced[0].codePoints().toArray().map { String(Character.toChars(it)) }
-                } else {
-                    emptyList()
-                }
-            }
-            if (pieces.size < 2) return@mapIndexed entry
-
-            val startSec = entry.time / 1000.0
-            val nextTime = entries.drop(index + 1).firstOrNull { it.time > entry.time }?.time
-            val available = nextTime?.let { (it - entry.time) / 1000.0 }
-            val wanted = (EstimatedMinLineSec + text.length * EstimatedSecPerChar).coerceAtMost(EstimatedMaxLineSec)
-            // leave a small breath before the next line so the last word finishes, not collides
-            val total = if (available != null) minOf(wanted, (available * 0.92).coerceAtLeast(0.1)) else wanted
-
-            val weights = pieces.map { (it.length + 1).toDouble() }
-            val weightSum = weights.sum()
-            var cursor = startSec
-            val words = pieces.mapIndexed { i, piece ->
-                val span = total * weights[i] / weightSum
-                WordTimestamp(piece, cursor, cursor + span).also { cursor += span }
-            }
-            entry.copy(words = words)
-        }
-    }
 
     // [offset:+500] means "show every line 500 ms sooner" (the LRC convention), so the times move earlier by that much
     private val LRC_OFFSET_TAG_REGEX = "\\[offset:\\s*([+-]?\\d+)\\s*\\]".toRegex(RegexOption.IGNORE_CASE)
@@ -519,7 +451,7 @@ object LyricsUtils {
     // same as parseLyrics, but the card, the page and the styles stop re-parsing one song on the main thread
     fun parseLyricsCached(lyrics: String): List<LyricsEntry> {
         val template = synchronized(parsedCache) { parsedCache[lyrics] }
-            ?: parseForDisplay(lyrics).also { parsed -> synchronized(parsedCache) { parsedCache[lyrics] = parsed } }
+            ?: parseLyrics(lyrics).also { parsed -> synchronized(parsedCache) { parsedCache[lyrics] = parsed } }
         return template.map { entry ->
             entry.copy(
                 romanizedTextFlow = MutableStateFlow(null),
@@ -538,7 +470,7 @@ object LyricsUtils {
     fun warmParsedLyrics(lyrics: String?) {
         if (lyrics.isNullOrBlank() || lyrics == LyricsEntity.LYRICS_NOT_FOUND) return
         val parsed = synchronized(parsedCache) { parsedCache[lyrics] }
-            ?: runCatching { parseForDisplay(lyrics) }.getOrNull()?.also { synchronized(parsedCache) { parsedCache[lyrics] = it } }
+            ?: runCatching { parseLyrics(lyrics) }.getOrNull()?.also { synchronized(parsedCache) { parsedCache[lyrics] = it } }
             ?: return
         lineWarmer?.invoke(parsed)
     }

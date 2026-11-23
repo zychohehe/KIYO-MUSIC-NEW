@@ -346,6 +346,7 @@ Forks are welcome, that's what open source is for! Just two asks:
 - **Auto Eq** ([Web](https://autoeq.app)) -- The equalizer database
 - **lrc.red** ([Web](https://lrc.red)) -- Word-timed lyrics for millions of songs, free for everyone
 - **InnertubeX** by [nyxireal](https://github.com/nyxiereal) [Their repo](https://github.com/metrolistGroup/innertubex) For The Youtube API Access
+- **Beatcord** (formerly BitChord) by [kushagrasinghx](https://github.com/kushagrasinghx/BitChord) -- The lyrics sources in `providers/beatlyrics` were taken from this project (GPL-3.0)
 
 ---
 

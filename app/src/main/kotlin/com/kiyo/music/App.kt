@@ -22,7 +22,6 @@ import coil3.request.crossfade
 import com.music.innertube.YouTube
 import com.music.innertube.models.IpVersion
 import com.music.innertube.models.YouTubeLocale
-import com.music.kugou.KuGou
 import com.kiyo.music.constants.*
 import com.kiyo.music.di.ApplicationScope
 import com.kiyo.music.i18n.AppLanguage
@@ -203,10 +202,6 @@ class App : Application(), SingletonImageLoader.Factory {
                 ?: languageTag.takeIf { it in LanguageCodeToName }
                 ?: "en"
         )
-
-        if (languageTag == "zh-TW") {
-            KuGou.useTraditionalChinese = true
-        }
 
         // before anything asks youtube, so the first requests already go through the proxy
         AppProxy.apply(AppProxy.configFrom(settings))
