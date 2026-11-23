@@ -21,6 +21,9 @@ import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import com.kiyo.music.db.MusicDatabase
 import com.kiyo.music.extensions.currentMetadata
 import com.kiyo.music.db.entities.LyricsEntity
+import androidx.datastore.preferences.core.edit
+import com.kiyo.music.constants.LyricsGlobalDelayMsKey
+import com.kiyo.music.utils.dataStore
 import com.kiyo.music.lyrics.LyricsAutoSync
 import com.kiyo.music.lyrics.LyricsUtils
 import com.kiyo.music.lyrics.VideoLyricsSync
@@ -173,9 +176,23 @@ class PlayerConnection(
      * How many ms the current song's lyrics are shifted. Positive shows each line sooner, so it is
      * added to the playback position wherever lyrics are timed.
      */
-    val lyricsOffsetMs: StateFlow<Int> = currentSong
+    val songLyricsOffsetMs: StateFlow<Int> = currentSong
         .map { it?.song?.lyricsOffset ?: 0 }
         .distinctUntilChanged()
+        .stateIn(scope, SharingStarted.Eagerly, 0)
+
+    /** The shift every song gets on top of its own, for the delay of a bluetooth speaker or earbuds. */
+    val lyricsGlobalDelayMs: StateFlow<Int> = context.dataStore.data
+        .map { it[LyricsGlobalDelayMsKey] ?: 0 }
+        .distinctUntilChanged()
+        .stateIn(scope, SharingStarted.Eagerly, 0)
+
+    fun setLyricsGlobalDelay(ms: Int) {
+        scope.launch { context.dataStore.edit { it[LyricsGlobalDelayMsKey] = ms.coerceIn(-2_000, 2_000) } }
+    }
+
+    /** What the lyrics are really shifted by: the song's own offset plus the all-songs delay. Every lyrics clock reads this. */
+    val lyricsOffsetMs: StateFlow<Int> = combine(songLyricsOffsetMs, lyricsGlobalDelayMs) { song, global -> song + global }
         .stateIn(scope, SharingStarted.Eagerly, 0)
 
     val currentLyrics = mediaMetadata.flatMapLatest { mediaMetadata ->

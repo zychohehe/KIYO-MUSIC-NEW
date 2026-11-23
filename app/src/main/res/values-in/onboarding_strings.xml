@@ -88,6 +88,7 @@
     <string name="onb_hello">Halo!</string>
     <string name="onb_welcome_to_kiyo">selamat datang di kiyo!</string>
     <string name="onb_all_good">Kamu siap berangkat</string>
+    <string name="onb_done_subtitle">Musikmu sudah menunggumu.</string>
     <string name="onb_warning">Peringatan</string>
     <string name="onb_blur_warning_body">Ponselmu mungkin terlalu lemah untuk menjalankan blur. Mau menonaktifkan blur? Kamu selalu bisa mengubahnya di Pengaturan.</string>
     <string name="onb_disable_blur">Nonaktifkan Blur</string>

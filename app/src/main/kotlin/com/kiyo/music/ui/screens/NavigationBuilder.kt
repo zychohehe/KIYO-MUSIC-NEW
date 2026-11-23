@@ -444,21 +444,6 @@ fun NavGraphBuilder.navigationBuilder(
         com.kiyo.music.ui.screens.settings.CrossmixSettingsScreen(navController = navController)
     }
 
-    composable(
-        route = "developer_space?person={person}",
-        arguments = listOf(navArgument("person") { type = NavType.IntType; defaultValue = 0 }),
-    ) { entry ->
-        val person = entry.arguments?.getInt("person") ?: 0
-        com.kiyo.music.ui.screens.settings.devspace.DeveloperSpaceScreen(
-            navController = navController,
-            initialPage = person,
-        )
-    }
-
-    composable(com.kiyo.music.ui.screens.settings.devspace.DevPlaygroundRoute) {
-        com.kiyo.music.ui.screens.settings.devspace.DevPlaygroundScreen(navController = navController)
-    }
-
     composable(com.kiyo.music.ui.screens.settings.storage.StorageRoute) {
         com.kiyo.music.ui.screens.settings.storage.StorageScreen(navController = navController)
     }

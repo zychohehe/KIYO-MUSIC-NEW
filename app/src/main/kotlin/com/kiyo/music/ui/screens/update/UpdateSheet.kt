@@ -132,10 +132,10 @@ private suspend fun checkUpdate(channel: UpdateChannel, force: Boolean): UpdateS
     )
 
 /** shows the app version sheet as a PopupSheet, see docs/popup-sheet.skill.md */
-fun PopupSheetState.showUpdateSheet(updateState: UpdateState, onOpenDevSpace: (Int) -> Unit = {}) {
+fun PopupSheetState.showUpdateSheet(updateState: UpdateState) {
     val popup = this
     show(buttonBar = { SheetPrimaryButton(text = stringResource(R.string.done), onClick = popup::dismiss) }) {
-        UpdateSheetContent(initialState = updateState, popup = popup, onOpenDevSpace = onOpenDevSpace)
+        UpdateSheetContent(initialState = updateState, popup = popup)
     }
 }
 
@@ -180,7 +180,6 @@ internal fun shortVersion(version: String): String = version.substringBefore(' '
 private fun ColumnScope.UpdateSheetContent(
     initialState: UpdateState,
     popup: PopupSheetState,
-    onOpenDevSpace: (Int) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -315,7 +314,7 @@ private fun ColumnScope.UpdateSheetContent(
                 ActionRow(
                     icon = R.drawable.info,
                     label = stringResource(R.string.about_app),
-                    onClick = { popup.showAboutSheet(onOpenDevSpace = onOpenDevSpace) },
+                    onClick = { popup.showAboutSheet() },
                 )
                 ActionRow(
                     icon = R.drawable.favorite,

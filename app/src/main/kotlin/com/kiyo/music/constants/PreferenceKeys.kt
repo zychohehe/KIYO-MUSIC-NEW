@@ -1011,6 +1011,9 @@ enum class LyricsAnimationStyle {
     METRO_LYRICS,
 }
 
+// every song's lyrics shifted by this many ms on top of the song's own offset (+ earlier, - later): for the delay of a
+// bluetooth speaker or earbuds, which the player can't know about
+val LyricsGlobalDelayMsKey = intPreferencesKey("lyricsGlobalDelayMs")
 val LyricsTextSizeKey = floatPreferencesKey("lyricsTextSize")
 val LyricsLineSpacingKey = floatPreferencesKey("lyricsLineSpacing")
 

@@ -976,9 +976,6 @@ class MainActivity : ComponentActivity() {
                     com.kiyo.music.link.AskForLocalNetwork(wanted = linkPaired, onGranted = { phoneLink.get().advertiseAgain() })
                     com.kiyo.music.ui.screens.update.UpdateNotificationOpener(
                         requests = openUpdateRequests,
-                        onOpenDevSpace = { personIndex ->
-                            navController.navigate("developer_space?person=$personIndex")
-                        },
                     )
                     com.kiyo.music.ui.screens.donate.DonatePromptScheduler(
                         enabled = setupCompleted && onboardedHere && !forceShowSetup,

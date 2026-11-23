@@ -170,10 +170,6 @@ import com.kiyo.music.ui.screens.recap.recapBarcodeCaption
 import com.kiyo.music.ui.screens.recap.recapBarcodePayload
 import com.kiyo.music.ui.screens.recap.recapDots
 import com.kiyo.music.ui.screens.recap.rememberRecapTime
-import com.kiyo.music.core.updater.TikTokUrl
-import com.kiyo.music.ui.screens.settings.devspace.DevAvatar
-import com.kiyo.music.ui.screens.settings.devspace.DevPeople
-import com.kiyo.music.ui.screens.settings.devspace.openDevUrl
 import com.kiyo.music.ui.screens.setup.onboarding.IdCardAspect
 import com.kiyo.music.ui.screens.setup.onboarding.ProfileIdCard
 import com.kiyo.music.ui.screens.update.UpdateHeadline
@@ -618,28 +614,21 @@ fun ProfileScreen(navController: NavController) {
                         Spacer(Modifier.height(24.dp))
                         ListeningTimeCard(totalListeningMs, onViewStats = { navController.navigate("stats") })
                         Spacer(Modifier.height(24.dp))
-                        val openDevSpace: (Int) -> Unit = { personIndex ->
-                            zoomOutState.dismissAll()
-                            navController.navigate("developer_space?person=$personIndex")
-                        }
                         val hasUpdate = updateState is com.kiyo.music.core.updater.UpdateState.Available
                         VersionCard(
                             updateHeadline = if (hasUpdate) UpdateHeadline else null,
-                            onCardClick = { zoomOutState.showUpdateSheet(updateState, onOpenDevSpace = openDevSpace) },
+                            onCardClick = { zoomOutState.showUpdateSheet(updateState) },
                             onPillClick = {
                                 if (hasUpdate) {
-                                    zoomOutState.showUpdateSheet(updateState, onOpenDevSpace = openDevSpace)
+                                    zoomOutState.showUpdateSheet(updateState)
                                 } else {
-                                    zoomOutState.showAboutSheet(onOpenDevSpace = openDevSpace)
+                                    zoomOutState.showAboutSheet()
                                 }
                             },
                         )
                         Spacer(Modifier.height(32.dp))
                         // the services and their sign-ins: discord, youtube music, backup
                         ProfileIntegrations(navController)
-                        Spacer(Modifier.height(32.dp))
-                        DeveloperCard(onClick = { navController.navigate("developer_space") })
-                        DiscordCard(onClick = { context.openDevUrl(TikTokUrl) })
                         Spacer(Modifier.height(32.dp))
                         ProfileSectionTitle(stringResource(R.string.profile_settings_title))
                         OpenSettingsRow(onClick = { navController.navigate("kiyo_settings") })
@@ -995,99 +984,6 @@ private fun VersionCapsule(update: Boolean, onAbout: () -> Unit) {
                 style = TextStyle(fontFamily = InterFontFamily, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = Color.White),
                 maxLines = 1,
                 softWrap = false,
-            )
-        }
-    }
-}
-
-@Composable
-private fun DeveloperCard(onClick: () -> Unit) {
-    val interaction = remember { MutableInteractionSource() }
-    val pressed by interaction.collectIsPressedAsState()
-    val spread by animateFloatAsState(
-        targetValue = if (pressed) 1f else 0f,
-        animationSpec = spring(dampingRatio = 0.55f, stiffness = 420f),
-        label = "devCardSpread",
-    )
-    val face = 30.dp
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .flatSection()
-            .clickable(interactionSource = interaction, indication = RemoteFocus, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-    ) {
-        // room for every face at rest, 40% of a face apart; pressed they spill to the right
-        Box(Modifier.size(width = face + face * 0.4f * (DevPeople.size - 1), height = face)) {
-            DevPeople.forEachIndexed { i, person ->
-                DevAvatar(
-                    person,
-                    Modifier
-                        .size(face)
-                        .graphicsLayer { translationX = i * face.toPx() * (0.4f + 0.35f * spread) }
-                        .border(1.5.dp, PageCard, CircleShape),
-                )
-            }
-        }
-        Spacer(Modifier.width(12.dp))
-        Text(
-            stringResource(R.string.profile_meet_dev_contributors),
-            style = TextStyle(fontFamily = InterFontFamily, fontWeight = FontWeight.Bold, fontSize = 15.sp, letterSpacing = (-0.6).sp, color = Color(0xFF9A9A9A)),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
-
-@Composable
-private fun DiscordCard(onClick: () -> Unit) {
-    // the follow card: TikTok mark, a line of why, and a Follow pill
-    val face = 34.dp
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .flatSection()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.size(face).clip(CircleShape).background(Color(0xFF1A1D21)),
-        ) {
-            Image(
-                painter = rememberResourcePainter(R.drawable.tiktok),
-                contentDescription = stringResource(R.string.profile_discord_cd),
-                modifier = Modifier.size(20.dp),
-            )
-        }
-        Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) {
-            Text(
-                stringResource(R.string.profile_join_discord),
-                style = TextStyle(fontFamily = InterFontFamily, fontWeight = FontWeight.Bold, fontSize = 15.sp, letterSpacing = (-0.4).sp, color = Color.White),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                stringResource(R.string.profile_follow_desc),
-                style = TextStyle(fontFamily = InterFontFamily, fontWeight = FontWeight.Medium, fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f)),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        Spacer(Modifier.width(10.dp))
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(50))
-                .background(Color.White)
-                .padding(horizontal = 14.dp, vertical = 7.dp),
-        ) {
-            Text(
-                stringResource(R.string.profile_follow_button),
-                style = TextStyle(fontFamily = InterFontFamily, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color.Black),
             )
         }
     }

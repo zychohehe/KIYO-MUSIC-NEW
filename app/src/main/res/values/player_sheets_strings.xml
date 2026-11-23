@@ -21,6 +21,7 @@
     <string name="ps_device_passthrough_on">passthrough on</string>
     <string name="ps_device_playing">playing</string>
     <string name="ps_offset_title">Lyrics offset</string>
+    <string name="ps_offset_all_songs">All songs: %1$d ms (use − if the lyrics run ahead on Bluetooth)</string>
     <string name="ps_offset_listening">listening… %1$d%%</string>
     <string name="ps_offset_matching">matching…</string>
     <string name="ps_offset_auto">auto offset</string>

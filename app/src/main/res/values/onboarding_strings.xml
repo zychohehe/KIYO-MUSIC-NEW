@@ -123,6 +123,7 @@
     <string name="onb_hello">Hello!</string>
     <string name="onb_welcome_to_kiyo">welcome to kiyo!</string>
     <string name="onb_all_good">You\'re good to go</string>
+    <string name="onb_done_subtitle">Your music is waiting for you.</string>
 
     <!-- blur warning -->
     <string name="onb_warning">Warning</string>

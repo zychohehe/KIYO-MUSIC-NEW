@@ -114,7 +114,7 @@ private fun postNotification(context: Context, release: GithubRelease): Boolean 
 
 /** opens the version sheet each time requests goes up (MainActivity bumps it when launched from the notification), place inside PopupSheetHost's content */
 @Composable
-fun UpdateNotificationOpener(requests: Int, onOpenDevSpace: (Int) -> Unit = {}) {
+fun UpdateNotificationOpener(requests: Int) {
     val popup = LocalZoomOutOverlayState.current
     val context = LocalContext.current
     LaunchedEffect(requests) {
@@ -125,9 +125,6 @@ fun UpdateNotificationOpener(requests: Int, onOpenDevSpace: (Int) -> Unit = {}) 
         } else {
             UpdateState.UpToDate
         }
-        popup.showUpdateSheet(state, onOpenDevSpace = { index ->
-            popup.dismissAll()
-            onOpenDevSpace(index)
-        })
+        popup.showUpdateSheet(state)
     }
 }

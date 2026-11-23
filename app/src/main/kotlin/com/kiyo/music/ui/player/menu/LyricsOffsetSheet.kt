@@ -66,6 +66,9 @@ private const val SliderStepMs = 10
 /** What the - and + labels above the slider move the offset by. */
 private const val NudgeMs = 50
 
+/** The all-songs delay moves in smaller steps, since it is tuned by ear against the speaker. */
+private const val GlobalNudgeMs = 25
+
 /**
  * Shifts the current song's lyrics earlier (+) or later (-), in ms. Every change is saved to the
  * song right away, so the lyrics move while the sheet is still open and you can judge it by ear.
@@ -76,13 +79,13 @@ fun LyricsOffsetSheet(onDismiss: () -> Unit) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val focusManager = LocalFocusManager.current
     val songId = remember { playerConnection.mediaMetadata.value?.id }
-    val startOffset = remember { playerConnection.lyricsOffsetMs.value }
+    val startOffset = remember { playerConnection.songLyricsOffsetMs.value }
 
     var offset by remember { mutableIntStateOf(startOffset) }
     var draft by remember { mutableStateOf(startOffset.toString()) }
 
     LaunchedEffect(offset) {
-        if (songId == null || offset == playerConnection.lyricsOffsetMs.value) return@LaunchedEffect
+        if (songId == null || offset == playerConnection.songLyricsOffsetMs.value) return@LaunchedEffect
         playerConnection.database.query { updateLyricsOffset(songId, offset) }
     }
 
@@ -155,6 +158,23 @@ fun LyricsOffsetSheet(onDismiss: () -> Unit) {
             Spacer(modifier = Modifier.height(6.dp))
 
             OffsetTrack(offset = offset, onOffsetChange = ::setOffset)
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // one delay for every song, for the lag of a bluetooth speaker or earbuds
+            val globalDelay by playerConnection.lyricsGlobalDelayMs.collectAsState()
+            Text(
+                text = stringResource(R.string.ps_offset_all_songs, globalDelay),
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 14.sp,
+            )
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                NudgeLabel("-") { playerConnection.setLyricsGlobalDelay(globalDelay - GlobalNudgeMs) }
+                NudgeLabel("+") { playerConnection.setLyricsGlobalDelay(globalDelay + GlobalNudgeMs) }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 

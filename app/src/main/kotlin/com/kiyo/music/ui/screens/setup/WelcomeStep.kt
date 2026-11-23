@@ -278,6 +278,19 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
                         alpha = a
                         translationY = (1f - a) * 12.dp.toPx()
                     }
+                    // a soft glow behind the start pill that breathes with the hint, so the way forward reads first
+                    .drawBehind {
+                        val r = size.width * 0.75f
+                        drawCircle(
+                            brush = Brush.radialGradient(
+                                listOf(GlowViolet.copy(alpha = 0.42f * hintPulse), Color.Transparent),
+                                center = center,
+                                radius = r,
+                            ),
+                            radius = r,
+                            center = center,
+                        )
+                    }
                     .clip(RoundedCornerShape(50))
                     .background(Brush.horizontalGradient(listOf(Color(0xFF4F5BD5), Color(0xFF8FA6FF))))
                     .clickable(

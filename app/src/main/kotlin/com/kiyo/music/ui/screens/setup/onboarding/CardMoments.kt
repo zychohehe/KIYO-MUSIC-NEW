@@ -54,6 +54,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kiyo.music.R
+import com.kiyo.music.ui.screens.setup.welcome.WelcomeColors
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.TextStyle
 import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.cos
@@ -183,11 +187,15 @@ internal fun HelloCardStep(
     }
 }
 
+// the welcome page's glow colours, so the last page reads as the same place
+private val DoneGlowBlue = Color(0xFF6C8CA8)
+private val DoneGlowViolet = Color(0xFF8A6CFF)
+
 @Composable
 internal fun DoneStep(card: CardInfo, onFinished: () -> Unit) {
     var time by remember { mutableFloatStateOf(0f) }
-    val deviceTilt = rememberDeviceTilt()
     val currentOnFinished by rememberUpdatedState(onFinished)
+    val confetti = remember { Confetti.burst(count = 110, seed = card.cardNumber.hashCode()) }
     LaunchedEffect(Unit) {
         var start = 0L
         while (time * 1000f < CardMomentMillis) {
@@ -199,47 +207,94 @@ internal fun DoneStep(card: CardInfo, onFinished: () -> Unit) {
         currentOnFinished()
     }
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(Onb.Page)) {
-        val cardWidth = min(maxWidth.value * 0.86f, 420f).dp
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(WelcomeColors.Page)) {
+        val titleSize = min(maxWidth.value * 0.11f, 44f).sp
 
-        // a faint wave out from the tick as it lands
+        // the glow blooms out from the middle, drifting between blue and violet, with a ring that travels out
         Canvas(modifier = Modifier.fillMaxSize()) {
-            val ring = easeOut(((time - 0.1f) / 1.0f).coerceIn(0f, 1f))
+            val c = Offset(size.width / 2f, size.height * 0.4f)
+            val far = hypot(size.width, size.height)
+            val bloom = easeOut((time / 0.9f).coerceIn(0f, 1f))
+            val k = 0.5f + 0.5f * sin(time * 0.9f)
+            val tint = androidx.compose.ui.graphics.lerp(DoneGlowBlue, DoneGlowViolet, k)
+            drawCircle(
+                brush = Brush.radialGradient(
+                    listOf(tint.copy(alpha = 0.30f * bloom), tint.copy(alpha = 0.10f * bloom), Color.Transparent),
+                    center = c,
+                    radius = size.width * 1.1f,
+                ),
+                radius = size.width * 1.1f,
+                center = c,
+            )
+            val ring = easeOut(((time - 0.15f) / 1.1f).coerceIn(0f, 1f))
             if (ring in 0.001f..0.999f) {
                 drawCircle(
-                    Color.White.copy(alpha = 0.22f * (1f - ring)),
-                    radius = size.width * 0.9f * ring,
-                    center = Offset(size.width / 2f, size.height / 2f),
-                    style = Stroke(width = 2.dp.toPx()),
+                    Color.White.copy(alpha = 0.28f * (1f - ring)),
+                    radius = far * 0.7f * ring,
+                    center = c,
+                    style = Stroke(width = 2.dp.toPx() * (1f - ring) + 1f),
                 )
             }
+            // the confetti bursts as the badge lands
+            confetti.draw(this, c, time - 0.35f)
         }
 
         Column(
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier.align(Alignment.Center).padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            // the badge: a blue-violet gradient tile with a tick, springing in
             Box(
                 modifier = Modifier
-                    .size(68.dp)
+                    .size(88.dp)
                     .graphicsLayer {
                         val s = easeOutBack((time / 0.5f).coerceIn(0f, 1f))
                         scaleX = s
                         scaleY = s
                     }
                     .clip(CircleShape)
-                    .background(Onb.Badge),
+                    .background(Brush.linearGradient(listOf(Color(0xFF4F5BD5), Color(0xFF8FA6FF)))),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(painterResource(R.drawable.check), contentDescription = null, tint = Color(0xFF1C1C1C), modifier = Modifier.size(34.dp))
+                Icon(painterResource(R.drawable.check), contentDescription = null, tint = Color.White, modifier = Modifier.size(44.dp))
             }
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(24.dp))
             Text(
-                stringResource(R.string.onb_all_good),
-                color = Onb.Subtitle,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.graphicsLayer { alpha = ((time - 0.2f) / 0.4f).coerceIn(0f, 1f) },
+                text = stringResource(R.string.onb_all_good),
+                textAlign = TextAlign.Center,
+                style = TextStyle(
+                    brush = Brush.linearGradient(listOf(Color(0xFFFFFFFF), Color(0xFFA9BCD0), Color(0xFF8FA6FF))),
+                    fontSize = titleSize,
+                    lineHeight = titleSize * 1.12f,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = OnbTitleTracking,
+                ),
+                modifier = Modifier.graphicsLayer {
+                    val p = easeOut(((time - 0.3f) / 0.6f).coerceIn(0f, 1f))
+                    alpha = p
+                    translationY = (1f - p) * 16.dp.toPx()
+                },
+            )
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = stringResource(R.string.onb_done_subtitle),
+                color = Color(0xFFBDBDBD),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.graphicsLayer {
+                    alpha = ((time - 0.55f) / 0.5f).coerceIn(0f, 1f)
+                },
+            )
+            Spacer(Modifier.height(22.dp))
+            // a glass accent line under the message, the same as the welcome's
+            Box(
+                modifier = Modifier
+                    .width(56.dp)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(Brush.horizontalGradient(listOf(Color(0xFFA9BCD0), DoneGlowBlue)))
+                    .graphicsLayer { alpha = ((time - 0.7f) / 0.4f).coerceIn(0f, 1f) },
             )
         }
     }

@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import com.kiyo.music.R
-import com.kiyo.music.ui.screens.settings.devspace.DevPlaygroundRoute
 import com.kiyo.music.ui.screens.settings.importsync.ImportSyncRoute
 import com.kiyo.music.ui.screens.settings.integrations.backup.BackupRoute
 import com.kiyo.music.ui.screens.settings.integrations.discord.DiscordRoute
@@ -63,7 +62,6 @@ val SettingsPaneRoutes = setOf(
     "import_tunemymusic",
     "import_progress",
     "youtube_sync",
-    DevPlaygroundRoute,
 )
 
 // how wide the list is beside the open page: a phone's column on a phone on its side, a little more on a tablet

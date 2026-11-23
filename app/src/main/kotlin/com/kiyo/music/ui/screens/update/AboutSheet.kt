@@ -66,7 +66,7 @@ import com.kiyo.music.ui.screens.donate.showSupportSheet
 private const val DeveloperName = "zychohehe"
 
 // the about sheet, pushed from the version sheet: what the app is, who made it, and where to follow along
-fun PopupSheetState.showAboutSheet(onOpenDevSpace: (Int) -> Unit = {}) {
+fun PopupSheetState.showAboutSheet() {
     val popup = this
     show(buttonBar = { SheetPrimaryButton(text = stringResource(R.string.done), onClick = popup::dismiss) }) {
         AboutSheetContent(popup = popup)
@@ -157,18 +157,16 @@ private fun ColumnScope.AboutSheetContent(popup: PopupSheetState) {
         Spacer(Modifier.height(26.dp))
         SectionHeader(stringResource(R.string.about_developer))
         Spacer(Modifier.height(8.dp))
-        DeveloperCard(name = DeveloperName, role = stringResource(R.string.about_developer_role))
+        DeveloperCard(
+            name = DeveloperName,
+            role = stringResource(R.string.about_developer_role),
+            onFollow = { context.openUrl(TikTokUrl) },
+        )
 
         Spacer(Modifier.height(22.dp))
         SectionHeader(stringResource(R.string.about_actions))
         Spacer(Modifier.height(8.dp))
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            AboutLinkRow(
-                text = stringResource(R.string.about_follow_tiktok),
-                detail = "@$TikTokHandle",
-                icon = R.drawable.tiktok,
-                onClick = { context.openUrl(TikTokUrl) },
-            )
             AboutLinkRow(
                 text = stringResource(R.string.about_support_me),
                 detail = null,
@@ -193,13 +191,17 @@ private fun SectionHeader(title: String) {
 }
 
 @Composable
-private fun DeveloperCard(name: String, role: String) {
+private fun DeveloperCard(name: String, role: String, onFollow: () -> Unit) {
+    // the whole card follows the developer on tiktok: tap the name, the face or the pill
+    val interaction = remember { MutableInteractionSource() }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
+            .pressBounce(interaction, pressedScale = 0.97f)
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
             .background(MenuRowSurface)
+            .clickable(interactionSource = interaction, indication = RemoteFocus, onClick = onFollow)
             .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
         Image(
@@ -226,6 +228,36 @@ private fun DeveloperCard(name: String, role: String) {
                 fontWeight = FontWeight.Medium,
                 letterSpacing = (-0.2).sp,
                 color = Color.White.copy(alpha = 0.6f),
+            )
+            Text(
+                text = "@$TikTokHandle",
+                fontSize = 11.5.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.White.copy(alpha = 0.45f),
+            )
+        }
+        Spacer(Modifier.width(10.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier
+                .clip(RoundedCornerShape(50))
+                .background(Color.White)
+                .padding(horizontal = 12.dp, vertical = 7.dp),
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.tiktok),
+                contentDescription = null,
+                tint = Color.Black,
+                modifier = Modifier.size(14.dp),
+            )
+            Text(
+                text = stringResource(R.string.about_follow_tiktok),
+                color = Color.Black,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = (-0.2).sp,
+                maxLines = 1,
             )
         }
     }
