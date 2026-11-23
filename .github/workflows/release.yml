@@ -1,10 +1,15 @@
 name: Build & Release APK
 
-# Every push to main builds a signed release APK and publishes it as a GitHub Release,
-# so the in-app updater (and anyone on the Releases page) always gets the newest build.
+# Two kinds of release, both built and signed here and picked up by the in-app updater:
+#   nightly: every push to main. A pre-release numbered x.y.z.N (N counts up by itself), so only people on the
+#            Nightly channel in the app are offered it.
+#   stable:  push a tag like v5.6.1, or run this workflow by hand with "stable" ticked. A normal release x.y.z that
+#            everyone on the Release channel is offered.
+# After a stable release, raise versionName in app/build.gradle.kts to that version so the next nightlies build on top of it.
 on:
   push:
     branches: [main]
+    tags: ["v*"]
     paths-ignore:
       - "**.md"
       - "docs/**"
@@ -12,6 +17,15 @@ on:
       - ".github/ISSUE_TEMPLATE/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
+    inputs:
+      stable:
+        description: "Publish a stable release (leave off for a nightly)"
+        type: boolean
+        default: false
+      version:
+        description: "Stable version, like 5.6.1 (empty = versionName from app/build.gradle.kts)"
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -35,20 +49,43 @@ jobs:
       build: ${{ steps.v.outputs.build }}
       code: ${{ steps.v.outputs.code }}
       tag: ${{ steps.v.outputs.tag }}
+      stable: ${{ steps.v.outputs.stable }}
     steps:
       - uses: actions/checkout@v5
       - id: v
+        env:
+          INPUT_STABLE: ${{ inputs.stable }}
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          # major.minor comes from app/build.gradle.kts; the patch number is the run number, so every push
-          # to main is a higher version (5.6.1, 5.6.2, ...) and the in-app updater always offers it
-          MAJOR_MINOR=$(grep -oP 'versionName = "\K[0-9]+\.[0-9]+' app/build.gradle.kts | head -1)
-          VERSION="${MAJOR_MINOR}.${GITHUB_RUN_NUMBER}"
+          BASE=$(grep -oP 'versionName = "\K[0-9]+\.[0-9]+\.[0-9]+' app/build.gradle.kts | head -1)
+          STABLE=false
+          VERSION=""
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            STABLE=true
+            VERSION=$(echo "${GITHUB_REF_NAME#v}" | grep -oP '^[0-9]+\.[0-9]+\.[0-9]+' || true)
+          elif [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$INPUT_STABLE" = "true" ]; then
+            STABLE=true
+            VERSION="${INPUT_VERSION:-$BASE}"
+          fi
+          if [ "$STABLE" = "true" ]; then
+            if ! echo "$VERSION" | grep -qP '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "::error::A stable release needs a version like 5.6.1 (got '$VERSION')"; exit 1
+            fi
+            TAG="v${VERSION}"
+          else
+            # nightly: the version in build.gradle plus a counter, 5.6.0.37, which is always newer than the last nightly
+            VERSION="${BASE}.${GITHUB_RUN_NUMBER}"
+            TAG=""
+          fi
           BUILD=$((BASE_BUILD + GITHUB_RUN_NUMBER))
           CODE=$((BASE_CODE + GITHUB_RUN_NUMBER))
+          if [ -z "$TAG" ]; then TAG="nightly-${VERSION}-build${BUILD}"; fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "build=$BUILD"     >> "$GITHUB_OUTPUT"
           echo "code=$CODE"       >> "$GITHUB_OUTPUT"
-          echo "tag=v${VERSION}-build${BUILD}" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG"         >> "$GITHUB_OUTPUT"
+          echo "stable=$STABLE"   >> "$GITHUB_OUTPUT"
+          echo "Publishing $VERSION (build $BUILD) as $TAG, stable=$STABLE"
 
   # lint catches missing resources and broken strings before anything is published
   verify:
@@ -177,8 +214,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if [ "${{ needs.meta.outputs.stable }}" = "true" ]; then
+            KIND="--latest"
+          else
+            # a nightly is a pre-release, so only the Nightly channel in the app (and not the website) offers it
+            KIND="--prerelease --latest=false"
+          fi
           gh release create "${{ needs.meta.outputs.tag }}" dist/* \
             --target "${{ github.sha }}" \
             --title "${{ needs.meta.outputs.version }} (${{ needs.meta.outputs.build }})" \
             --generate-notes \
-            --latest
+            $KIND

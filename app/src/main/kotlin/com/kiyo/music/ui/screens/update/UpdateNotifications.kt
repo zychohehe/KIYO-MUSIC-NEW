@@ -40,8 +40,21 @@ private val ReminderOffsets = longArrayOf(0L, 14 * DayMs, 90 * DayMs)
 private const val ChannelId = "updates"
 private const val NotificationId = 1001
 
+private const val KeySkippedTag = "skipped_tag"
+
+private fun GithubRelease.skipKey() = tag.ifBlank { version }
+
+/** "Skip this version": that release never shows the popup or a notification again, the next one does */
+fun skipUpdateVersion(context: Context, release: GithubRelease) {
+    context.getSharedPreferences(PrefsName, Context.MODE_PRIVATE).edit().putString(KeySkippedTag, release.skipKey()).apply()
+}
+
+fun isUpdateSkipped(context: Context, release: GithubRelease): Boolean =
+    context.getSharedPreferences(PrefsName, Context.MODE_PRIVATE).getString(KeySkippedTag, null) == release.skipKey()
+
 /** call after a launch-time check found release newer than what's installed, posts a notification if one of its three reminders is due */
 fun maybeNotifyUpdate(context: Context, release: GithubRelease, now: Long = System.currentTimeMillis()) {
+    if (isUpdateSkipped(context, release)) return
     val prefs = context.getSharedPreferences(PrefsName, Context.MODE_PRIVATE)
     val releaseKey = release.tag.ifBlank { release.version }
 

@@ -25,7 +25,7 @@
     <string name="supplemental_update_no_apk">Tidak ada APK di rilis ini</string>
     <string name="supplemental_install_here">Pasang di sini</string>
     <string name="supplemental_update_open_web">Buka web</string>
-    <string name="supplemental_update_snooze">tidak, terima kasih, ingatkan 24 jam lagi</string>
+    <string name="supplemental_update_snooze">ingatkan nanti</string>
     <string name="supplemental_install_permission">Izinkan \"Pasang aplikasi tidak dikenal\" untuk kiyo, lalu ketuk Pasang di sini lagi.</string>
     <string name="supplemental_featured_playlist">Playlist Pilihan</string>
     <string name="supplemental_featured_songs">Lagu pilihan</string>
@@ -51,4 +51,8 @@
     <plurals name="supplemental_song_count">
         <item quantity="other">%1$d lagu</item>
     </plurals>
+    <string name="update_downloading_title">Mengunduh Kiyo %1$s</string>
+    <string name="update_ready_title">Kiyo %1$s siap dipasang</string>
+    <string name="update_ready_text">Ketuk untuk memasang pembaruan</string>
+    <string name="update_skip_version">lewati versi ini</string>
 </resources>

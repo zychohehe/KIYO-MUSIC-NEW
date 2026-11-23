@@ -60,6 +60,7 @@ fun UpdatePromptSheet(
     release: GithubRelease,
     userName: String,
     onSnooze: () -> Unit,
+    onSkip: () -> Unit = {},
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     onReveal: ((Float) -> Unit)? = null,
@@ -256,6 +257,15 @@ fun UpdatePromptSheet(
                 label = stringResource(R.string.supplemental_update_snooze),
                 dimmed = downloading,
                 onClick = onSnooze,
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            PromptButton(
+                enabled = !downloading,
+                label = stringResource(R.string.update_skip_version),
+                dimmed = downloading,
+                onClick = onSkip,
             )
         }
     }

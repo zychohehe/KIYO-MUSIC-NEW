@@ -1,9 +1,28 @@
 package com.kiyo.music.core.updater
 
+import android.Manifest
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.kiyo.music.BuildConfig
+import com.kiyo.music.MainActivity
+import com.kiyo.music.R
+import com.kiyo.music.ui.screens.update.ActionOpenUpdate
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import java.security.MessageDigest
+import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
@@ -37,6 +56,8 @@ data class GithubRelease(
     val publishedAt: String,
     // marked as a prerelease on github, which is what makes it a nightly
     val isNightly: Boolean = false,
+    // the sha256sums.txt attached to the release, used to check the download before it is installed
+    val sha256Url: String? = null,
 )
 
 sealed interface UpdateState {
@@ -183,11 +204,16 @@ private suspend fun fetchReleases(): Result<List<ParsedRelease>> = withContext(D
                 var fallbackUrl: String? = null
                 var fallbackName: String? = null
                 var fallbackSize = 0L
+                var shaUrl: String? = null
 
                 if (assets != null) {
                     for (a in 0 until assets.length()) {
                         val asset = assets.getJSONObject(a)
                         val name = asset.optString("name").orEmpty()
+                        if (name.equals("sha256sums.txt", ignoreCase = true)) {
+                            shaUrl = asset.optString("browser_download_url").orEmpty().ifBlank { null }
+                            continue
+                        }
                         if (!name.endsWith(".apk", ignoreCase = true)) continue
                         val url = asset.optString("browser_download_url").orEmpty()
                         val size = asset.optLong("size", 0L)
@@ -230,6 +256,7 @@ private suspend fun fetchReleases(): Result<List<ParsedRelease>> = withContext(D
                             apkSizeBytes = apkSize,
                             publishedAt = release.optString("published_at").orEmpty(),
                             isNightly = release.optBoolean("prerelease", false),
+                            sha256Url = shaUrl,
                         ),
                     ),
                 )
@@ -245,46 +272,202 @@ fun isNewerThanInstalled(candidateVersionText: String): Boolean {
     return candidate > installed
 }
 
+// the download runs in the app's own scope, so closing the sheet (or leaving the screen) doesn't cancel it; a second
+// request for the same file just joins the one that is running, and a cut connection continues from the .part file
+private val downloadScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+private val downloadLock = Any()
+private var activeDownload: Pair<String, Deferred<Result<File>>>? = null
+private val downloadProgress = MutableStateFlow(0f)
+private val downloadWatchers = AtomicInteger(0)
+
+private const val UpdatesChannelId = "updates"
+private const val DownloadNotificationId = 1002
+
 suspend fun downloadApk(
     context: Context,
     release: GithubRelease,
     onProgress: (Float) -> Unit,
-): Result<File> = withContext(Dispatchers.IO) {
-    runCatching {
-        val url = release.apkUrl ?: error("This release has no APK attached")
-        val target = apkFileFor(context, release)
-
-        if (isDownloaded(context, release)) {
-            onProgress(1f)
-            return@runCatching target
+): Result<File> {
+    val app = context.applicationContext
+    val key = release.apkUrl ?: return Result.failure(IllegalStateException("This release has no APK attached"))
+    if (isDownloaded(app, release)) {
+        onProgress(1f)
+        return Result.success(apkFileFor(app, release))
+    }
+    val deferred = synchronized(downloadLock) {
+        val running = activeDownload
+        if (running != null && running.first == key && running.second.isActive) {
+            running.second
+        } else {
+            downloadProgress.value = 0f
+            downloadScope.async { runDownload(app, release) }.also { activeDownload = key to it }
         }
-        if (target.exists()) target.delete()
-
-        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
-            connectTimeout = 15_000
-            readTimeout = 30_000
-            instanceFollowRedirects = true
-            setRequestProperty("User-Agent", "kiyo-android")
+    }
+    downloadWatchers.incrementAndGet()
+    return try {
+        coroutineScope {
+            val watcher = launch { downloadProgress.collect { onProgress(it) } }
+            try {
+                deferred.await()
+            } finally {
+                watcher.cancel()
+            }
         }
-        val total = release.apkSizeBytes.takeIf { it > 0 }
-            ?: connection.contentLengthLong.takeIf { it > 0 }
-            ?: -1L
+    } finally {
+        downloadWatchers.decrementAndGet()
+    }
+}
 
-        connection.inputStream.use { input ->
-            target.outputStream().use { output ->
-                val buffer = ByteArray(64 * 1024)
-                var written = 0L
-                while (true) {
-                    val read = input.read(buffer)
-                    if (read == -1) break
-                    output.write(buffer, 0, read)
-                    written += read
-                    if (total > 0) onProgress((written.toFloat() / total).coerceIn(0f, 1f))
+private fun runDownload(context: Context, release: GithubRelease): Result<File> = runCatching {
+    val url = release.apkUrl ?: error("This release has no APK attached")
+    val target = apkFileFor(context, release)
+    val part = File(target.path + ".part")
+    if (target.exists()) target.delete()
+
+    val expected = release.apkSizeBytes.takeIf { it > 0 } ?: -1L
+    var written = if (part.exists()) part.length() else 0L
+    if (expected > 0 && written > expected) {
+        part.delete()
+        written = 0L
+    }
+
+    val connection = (URL(url).openConnection() as HttpURLConnection).apply {
+        connectTimeout = 15_000
+        readTimeout = 30_000
+        instanceFollowRedirects = true
+        setRequestProperty("User-Agent", "kiyo-android")
+        if (written > 0) setRequestProperty("Range", "bytes=$written-")
+    }
+    val code = connection.responseCode
+    val resuming = written > 0 && code == HttpURLConnection.HTTP_PARTIAL
+    if (code != HttpURLConnection.HTTP_OK && !resuming) {
+        if (code == 416) part.delete()
+        error("Download failed (HTTP $code), please try again")
+    }
+    if (!resuming) written = 0L
+
+    val total = if (expected > 0) expected else connection.contentLengthLong.takeIf { it > 0 }?.plus(written) ?: -1L
+    var lastPercent = -1
+    connection.inputStream.use { input ->
+        java.io.FileOutputStream(part, resuming).use { output ->
+            val buffer = ByteArray(64 * 1024)
+            while (true) {
+                val read = input.read(buffer)
+                if (read == -1) break
+                output.write(buffer, 0, read)
+                written += read
+                if (total > 0) {
+                    val p = (written.toFloat() / total).coerceIn(0f, 1f)
+                    downloadProgress.value = p
+                    val percent = (p * 100).toInt()
+                    if (percent != lastPercent) {
+                        lastPercent = percent
+                        showDownloadProgress(context, release, percent)
+                    }
                 }
             }
         }
-        onProgress(1f)
-        target
+    }
+    // a short file keeps its .part, the next try picks up from there
+    if (total > 0 && part.length() != total) error("The download was cut short, please try again")
+    verifyChecksum(release, part)
+    if (target.exists()) target.delete()
+    if (!part.renameTo(target)) error("Couldn't save the update file")
+    downloadProgress.value = 1f
+    finishDownloadNotification(context, release, ready = true)
+    target
+}.onFailure { finishDownloadNotification(context, release, ready = false) }
+
+/** Compares the file with the release's sha256sums.txt. No list, or no line for this file, means nothing to compare and it passes. */
+private fun verifyChecksum(release: GithubRelease, file: File) {
+    val sumsUrl = release.sha256Url ?: return
+    val name = release.apkName ?: return
+    val expected = runCatching {
+        val connection = (URL(sumsUrl).openConnection() as HttpURLConnection).apply {
+            connectTimeout = 10_000
+            readTimeout = 10_000
+            instanceFollowRedirects = true
+            setRequestProperty("User-Agent", "kiyo-android")
+        }
+        connection.inputStream.bufferedReader().use { it.readLines() }.firstNotNullOfOrNull { line ->
+            val parts = line.trim().split(Regex("\\s+"), 2)
+            if (parts.size == 2 && parts[1].trim().trimStart('*') == name) parts[0].lowercase() else null
+        }
+    }.getOrNull() ?: return
+
+    val digest = MessageDigest.getInstance("SHA-256")
+    file.inputStream().use { input ->
+        val buffer = ByteArray(64 * 1024)
+        while (true) {
+            val read = input.read(buffer)
+            if (read == -1) break
+            digest.update(buffer, 0, read)
+        }
+    }
+    val actual = digest.digest().joinToString("") { "%02x".format(it) }
+    if (actual != expected) {
+        file.delete()
+        error("The downloaded file didn't match its checksum, so it was not installed. Please try again.")
+    }
+}
+
+private fun canNotify(context: Context): Boolean =
+    Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+
+private fun showDownloadProgress(context: Context, release: GithubRelease, percent: Int) {
+    if (!canNotify(context)) return
+    val notification = NotificationCompat.Builder(context, UpdatesChannelId)
+        .setSmallIcon(R.drawable.kiyo_notification)
+        .setContentTitle(context.getString(R.string.update_downloading_title, release.version))
+        .setContentText("$percent%")
+        .setProgress(100, percent, false)
+        .setOngoing(true)
+        .setOnlyAlertOnce(true)
+        .setSilent(true)
+        .build()
+    runCatching { NotificationManagerCompat.from(context).notify(DownloadNotificationId, notification) }
+}
+
+/** Clears the progress notification; when nobody is watching the download, a finished one becomes a "tap to install" notification. */
+private fun finishDownloadNotification(context: Context, release: GithubRelease, ready: Boolean) {
+    runCatching { NotificationManagerCompat.from(context).cancel(DownloadNotificationId) }
+    if (!ready || downloadWatchers.get() > 0 || !canNotify(context)) return
+    val intent = Intent(context, MainActivity::class.java)
+        .setAction(ActionOpenUpdate)
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+    val pending = PendingIntent.getActivity(
+        context,
+        DownloadNotificationId,
+        intent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+    )
+    val notification = NotificationCompat.Builder(context, UpdatesChannelId)
+        .setSmallIcon(R.drawable.kiyo_notification)
+        .setContentTitle(context.getString(R.string.update_ready_title, release.version))
+        .setContentText(context.getString(R.string.update_ready_text))
+        .setContentIntent(pending)
+        .setAutoCancel(true)
+        .build()
+    runCatching { NotificationManagerCompat.from(context).notify(DownloadNotificationId, notification) }
+}
+
+/**
+ * Removes update files nobody needs any more: the one for the build that is installed, ones for older versions,
+ * and anything a day old (half-finished .part files included). Called once when the app starts.
+ */
+fun clearStaleUpdateApks(context: Context) {
+    val dayAgo = System.currentTimeMillis() - 24L * 60L * 60L * 1000L
+    val installed = parseFullVersion(BuildConfig.VERSION_NAME).copy(buildNumber = 0)
+    val ownBuild = Regex("build${BuildConfig.BUILD_NUMBER}(?!\\d)", RegexOption.IGNORE_CASE)
+    context.cacheDir.listFiles()?.forEach { file ->
+        if (!file.isFile) return@forEach
+        val isApk = file.name.endsWith(".apk", ignoreCase = true)
+        val isPart = file.name.endsWith(".apk.part", ignoreCase = true)
+        if (!isApk && !isPart) return@forEach
+        val installedOne = isApk && ownBuild.containsMatchIn(file.name)
+        val older = isApk && parseFullVersion(file.name).copy(buildNumber = 0) < installed
+        if (installedOne || older || file.lastModified() < dayAgo) file.delete()
     }
 }
 

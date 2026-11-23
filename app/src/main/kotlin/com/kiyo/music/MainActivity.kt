@@ -499,6 +499,10 @@ class MainActivity : ComponentActivity() {
         val context = LocalContext.current
 
         LaunchedEffect(Unit) {
+            // old update files (the installed build's own, older versions, anything a day old) are cleaned out at launch
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                runCatching { com.kiyo.music.core.updater.clearStaleUpdateApks(context) }
+            }
             if (getAutoUpdateCheckSetting(context)) {
 
                 delay(2000L)
@@ -1734,13 +1738,19 @@ private fun HomeUpdatePrompt(currentRoute: String?) {
 
     val release = (updateState as? com.kiyo.music.core.updater.UpdateState.Available)?.release
     val snoozeExpired = System.currentTimeMillis() - snoozedAt > UpdateSnoozeWindowMillis
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val skipped = release != null && com.kiyo.music.ui.screens.update.isUpdateSkipped(context, release)
 
-    if (release != null && snoozeExpired && !dismissed) {
+    if (release != null && snoozeExpired && !dismissed && !skipped) {
         com.kiyo.music.ui.screens.update.UpdatePromptSheet(
             release = release,
             userName = userName,
             onSnooze = {
                 setSnoozedAt(System.currentTimeMillis())
+                dismissed = true
+            },
+            onSkip = {
+                com.kiyo.music.ui.screens.update.skipUpdateVersion(context, release)
                 dismissed = true
             },
             onDismiss = { dismissed = true },
