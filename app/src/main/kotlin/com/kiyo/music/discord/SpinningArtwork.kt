@@ -69,7 +69,7 @@ internal class SpinningArtwork(
         val request = Request.Builder().url(url.resize(SourceSize, SourceSize)).build()
         val bytes = DiscordHttp.client.newCall(request).execute().use { response ->
             check(response.isSuccessful) { "artwork download failed: HTTP ${response.code}" }
-            response.body!!.bytes()
+            response.body.bytes()
         }
         BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: error("artwork isn't a picture")
     }

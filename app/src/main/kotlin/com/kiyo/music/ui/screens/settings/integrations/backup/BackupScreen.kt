@@ -173,8 +173,8 @@ private fun CloudGroup(
             descriptionText = when {
                 login is CloudLogin.InBrowser && login.kind == kind -> stringResource(R.string.backup_waiting_browser)
                 login is CloudLogin.Finishing && login.kind == kind -> stringResource(R.string.backup_finishing_sign_in)
-                connected && kind == CloudKind.WebDav -> stringResource(R.string.backup_webdav_connected, account?.name.orEmpty())
-                connected -> stringResource(R.string.backup_signed_in_as, account?.name.orEmpty())
+                connected && kind == CloudKind.WebDav -> stringResource(R.string.backup_webdav_connected, account.name.orEmpty())
+                connected -> stringResource(R.string.backup_signed_in_as, account.name.orEmpty())
                 !configured -> stringResource(R.string.backup_not_set_up)
                 else -> stringResource(
                     when (kind) {

@@ -146,7 +146,7 @@ Output MUST be a JSON array with EXACTLY $lineCount strings."""
                     .build()
 
                 val response = client.newCall(request).execute()
-                val responseBody = response.body?.string()
+                val responseBody = response.body.string()
 
                 if (!response.isSuccessful) {
 

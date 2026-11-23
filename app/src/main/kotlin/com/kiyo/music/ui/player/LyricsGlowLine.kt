@@ -1451,7 +1451,7 @@ private fun BackingVocalLine(
         if (useSweep) {
             KaraokeSweepText(
                 text = text,
-                words = words!!,
+                words = words,
                 positionProvider = positionProvider,
                 waveAmplitudeProvider = waveAmplitudeProvider,
                 baseColor = { color().copy(alpha = ActiveUnsungAlpha) },

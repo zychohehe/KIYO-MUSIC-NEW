@@ -177,10 +177,10 @@ private fun groupLines(lines: List<LyricsEntry>, duet: Boolean, mirrored: Boolea
         }
         val side = alignmentFor(entry, useAgentAlignment = duet, mirrored = mirrored)
         val reading = readings?.romanized?.getOrNull(index)?.takeIf { !it.text.isNullOrBlank() }
-        val asMain = reading != null && readings?.romanizedAsMain == true
+        val asMain = reading != null && readings.romanizedAsMain == true
         // with the romanisation as the line, it's sung in its own timed pieces and the original goes under it
-        val text = if (asMain) reading?.text.orEmpty() else entry.text
-        val words = if (asMain) reading?.words else entry.words
+        val text = if (asMain) reading.text.orEmpty() else entry.text
+        val words = if (asMain) reading.words else entry.words
         val parts = splitBackingVocal(text, words)
         val group = when {
             parts.backing == null -> LineGroup(PillRow(PillRowKind.LEAD, text, words, entry.time, endMs, side))

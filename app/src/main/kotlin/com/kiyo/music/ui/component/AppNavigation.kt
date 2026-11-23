@@ -216,7 +216,11 @@ class TabOwnership(private val navigationItems: List<Screens>) {
 }
 
 /** How much of the dark glass covers the blur behind the nav bar. Lower = more transparent (the old look was 0.78). */
-internal const val NavBarTintAlpha = 0.5f
+/** how much dark tint covers the blurred page: low, so the bar reads as clear glass the page shows through */
+internal const val NavBarTintAlpha = 0.22f
+
+/** the base under the blur: lower still, so the blur itself carries the glass */
+internal const val NavBarFoundationAlpha = 0.1f
 
 /** The bar itself, a stadium the mini player's 64dp matches. */
 internal val NavBarHeight = 64.dp
@@ -264,7 +268,6 @@ fun AppNavigationBar(
         return
     }
     val glassState = LocalGlassState.current ?: remember { GlassState() }
-    val accentWash = rememberChromeAccentWash()
     // like the reference: the tabs share one glass pill, and Search is its own round button beside it
     val pillItems = remember(navigationItems) { navigationItems.filter { it == Screens.Home || it == Screens.Search || it == Screens.Library } }
     // a page no pill tab owns (Settings and its sub-pages) falls back to Home, so the bar shrunk to one
@@ -276,7 +279,8 @@ fun AppNavigationBar(
     // a look's glass can draw its own edge and its own pill, and then kiyo leaves its hairline, shadow or highlight out
     val moduleGlass = rememberChromeModuleGlass()
     // the lit tab's colour: the theme's accent, pushed toward white so it reads on the dark glass
-    val litTint = lerp(MaterialTheme.colorScheme.primary, Color.White, 0.35f)
+    // the lit tab is white glass, never the theme or a page colour, so the bar stays clear and neutral
+    val litTint = Color.White
     val density = LocalDensity.current
     val glassPill = remember(pill, tabCount, density) {
         { bar: Size -> pill.forGlass(bar, with(density) { NavRowPadding.toPx() }, tabCount, density) }
@@ -309,17 +313,18 @@ fun AppNavigationBar(
                     .clip(NavBarShape)
                     .drawWithContent {
                         drawContent()
+                        drawLiquidSheen(size)
                         if (moduleGlass?.outline != false) drawGlassRim(size)
                     }
             ) {
                 FrostedChromeGlass(
                     state = glassState,
                     pureBlack = pureBlack,
-                    accentWash = accentWash,
+                    accentWash = null,
                     modifier = Modifier.fillMaxSize(),
                     pill = glassPill,
                     tintAlpha = NavBarTintAlpha,
-                    foundationAlpha = NavBarTintAlpha,
+                    foundationAlpha = NavBarFoundationAlpha,
                 )
 
                 Row(
@@ -356,7 +361,6 @@ fun AppNavigationBar(
                 onOpen = { onOpenRoute(SettingsListRoute) },
                 glassState = glassState,
                 pureBlack = pureBlack,
-                accentWash = accentWash,
                 moduleGlass = moduleGlass,
                 litTint = litTint,
             )
@@ -370,7 +374,6 @@ private fun SettingsOrb(
     onOpen: () -> Unit,
     glassState: GlassState,
     pureBlack: Boolean,
-    accentWash: (() -> Color)?,
     moduleGlass: com.kiyo.music.modules.skin.ActiveGlass?,
     litTint: Color,
 ) {
@@ -384,7 +387,8 @@ private fun SettingsOrb(
             .clip(CircleShape)
             .drawWithContent {
                 drawContent()
-                if (moduleGlass?.outline != false) drawGlassRim(size)
+                drawLiquidSheen(size)
+                        if (moduleGlass?.outline != false) drawGlassRim(size)
             }
             .pressBounce(interactionSource, pressedScale = 0.88f)
             .clickable(
@@ -397,10 +401,9 @@ private fun SettingsOrb(
         FrostedChromeGlass(
             state = glassState,
             pureBlack = pureBlack,
-            accentWash = accentWash,
             modifier = Modifier.fillMaxSize(),
             tintAlpha = NavBarTintAlpha,
-            foundationAlpha = NavBarTintAlpha,
+            foundationAlpha = NavBarFoundationAlpha,
         )
         Icon(
             painter = painterResource(R.drawable.settings),
@@ -413,6 +416,23 @@ private fun SettingsOrb(
 
 /** the lit tab's capsule: dark and a little glassy, as in the reference */
 private val LitCapsule = Color.White.copy(alpha = 0.12f)
+
+/**
+ * the liquid look: a soft light across the top of the glass that fades down through the middle,
+ * so it reads as a clear, wet pane rather than a flat tinted plate. one cheap gradient, no blur.
+ */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawLiquidSheen(size: Size) {
+    drawRect(
+        brush = Brush.verticalGradient(
+            0f to Color.White.copy(alpha = 0.16f),
+            0.45f to Color.White.copy(alpha = 0.035f),
+            1f to Color.Transparent,
+            startY = 0f,
+            endY = size.height,
+        ),
+        size = size,
+    )
+}
 
 /** the glass's edge: a thin rim that catches light at the top left and the bottom right */
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGlassRim(size: Size) {

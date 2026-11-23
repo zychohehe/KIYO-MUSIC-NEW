@@ -178,7 +178,7 @@ object SongAboutLoader {
         return copy(
             geniusDone = true,
             genius = found,
-            artists = if (sameArtist && lead!!.imageUrl == null && photo != null) listOf(lead.copy(imageUrl = photo)) + artists.drop(1) else artists,
+            artists = if (sameArtist && lead.imageUrl == null && photo != null) listOf(lead.copy(imageUrl = photo)) + artists.drop(1) else artists,
         )
     }
 

@@ -33,7 +33,7 @@ fun LibraryArtistsScreen(
         return
     }
     val viewModel: LibraryHomeViewModel = hiltViewModel()
-    val artists by (shelf?.let(viewModel::shelf)?.artists ?: viewModel.artists).collectAsStateWithLifecycle()
+    val artists by (shelf.let(viewModel::shelf)?.artists ?: viewModel.artists).collectAsStateWithLifecycle()
     val menuState = LocalMenuState.current
     val coroutineScope = rememberCoroutineScope()
     val resources = LocalContext.current.resources

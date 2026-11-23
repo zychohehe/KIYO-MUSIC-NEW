@@ -1133,8 +1133,8 @@ fun MorphingCover(
                                 sheetFade = if (squaredCards) ::squaredCanvasSheetFade else ::canvasSheetFade,
                                 mirror = if (playing && canvasMirrorWanted) canvasMirror else null,
                                 // only the playing song's canvas feeds the colours, the one sliding away has had its turn
-                                onFrameColors = if (playing && feedsAmbient) ambient?.let { it::live } else null,
-                                onLiveEnd = if (playing && feedsAmbient) ambient?.let { it::endLive } else null,
+                                onFrameColors = if (playing && feedsAmbient) ambient.let { it::live } else null,
+                                onLiveEnd = if (playing && feedsAmbient) ambient.let { it::endLive } else null,
                                 onShowingChange = if (playing) { shown -> liveCanvasShown = shown } else null,
                                 feedsMenu = playing,
                             )
@@ -1144,7 +1144,7 @@ fun MorphingCover(
                                     video = videoInfo,
                                     isPlaying = isPlaying,
                                     glassState = if (mirrorsOff) null else videoGlassState,
-                                    onFrameColors = if (feedsAmbient) ambient?.let { it::live } else null,
+                                    onFrameColors = if (feedsAmbient) ambient.let { it::live } else null,
                                     onShowingChange = { shown -> liveVideoShown = shown },
                                     modifier = Modifier
                                         .fillMaxSize()
