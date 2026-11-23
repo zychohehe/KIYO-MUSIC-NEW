@@ -762,6 +762,7 @@
     <string name="telegram_channel">Telegram</string>
     <string name="welcome_to">환영합니다</string>
     <string name="welcome_lets_listen">음악을 들어 볼까요!</string>
+    <string name="welcome_start">시작하기</string>
     <string name="welcome_tap_anywhere">아무 곳이나 눌러 계속</string>
     <string name="welcome_preparing_subtitle">사용에 필요한 준비를 시작합니다.</string>
     <string name="get_started">시작하기</string>

@@ -2,6 +2,10 @@
 
 package com.kiyo.music.ui.launch
 
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+
 import android.content.Context
 import android.graphics.Paint
 import android.graphics.Path
@@ -334,6 +338,18 @@ fun LaunchIntroOverlay(state: LaunchIntroState, essentialsReady: Boolean) {
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
+        // 3) wordmark under the mark: stays while it waits, melts away as the mark takes off
+        androidx.compose.material3.Text(
+            text = "Kiyo Music",
+            color = Color.White,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = 1.2.sp,
+            modifier = Modifier
+                .align(androidx.compose.ui.Alignment.Center)
+                .offset(y = 150.dp)
+                .graphicsLayer { alpha = (1f - smoothstep(0f, 0.3f, state.flight.value)) * (if (state.landed) 0f else 1f) },
+        )
         // the splash's black, fading off the skeleton; it also keeps taps off the skeleton
         Spacer(
             modifier = Modifier
@@ -468,6 +484,7 @@ private class LaunchMarkArt {
         strokeJoin = Paint.Join.ROUND
     }
     private val darkFace = paint(0xFF212121.toInt()) {
+        shader = android.graphics.LinearGradient(96f, 100f, 140f, 136f, 0xFF1B1F3B.toInt(), 0xFF4F5BD5.toInt(), android.graphics.Shader.TileMode.CLAMP)
         style = Paint.Style.STROKE
         strokeWidth = 11f
         strokeCap = Paint.Cap.ROUND

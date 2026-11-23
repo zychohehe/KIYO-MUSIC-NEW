@@ -8,6 +8,8 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import kotlinx.coroutines.delay
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -83,14 +85,18 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
     // a soft spring instead of a fixed tween: it eases in and settles without a hard stop
     LaunchedEffect(Unit) { enter.animateTo(1f, spring(dampingRatio = 0.9f, stiffness = Spring.StiffnessLow)) }
     // logo pops in first, the closing line types itself out last
+    val haptic = LocalHapticFeedback.current
     val logoIn = remember { Animatable(0f) }
     val finale = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
+        delay(120)
+        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
         logoIn.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessLow))
     }
     LaunchedEffect(Unit) {
         delay(1500)
         finale.animateTo(1f, tween(1500, easing = LinearEasing))
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
     }
     val leave by animateFloatAsState(
         targetValue = if (isHiding) 1f else 0f,
@@ -253,6 +259,36 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
                 ),
                 modifier = Modifier.height((40f * u).dp),
             )
+            // tombol mulai: muncul setelah teks selesai diketik
+            Box(
+                modifier = Modifier
+                    .padding(vertical = (10f * u).dp)
+                    .graphicsLayer {
+                        val a = ((finale.value - 0.9f) / 0.1f).coerceIn(0f, 1f)
+                        alpha = a
+                        translationY = (1f - a) * 12.dp.toPx()
+                    }
+                    .clip(RoundedCornerShape(50))
+                    .background(Brush.horizontalGradient(listOf(Color(0xFF4F5BD5), Color(0xFF8FA6FF))))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        enabled = finale.value >= 0.95f,
+                        role = Role.Button,
+                    ) {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onNext()
+                    }
+                    .padding(horizontal = (28f * u).dp, vertical = (12f * u).dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.welcome_start),
+                    color = Color.White,
+                    fontSize = (17f * u).sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.4.sp,
+                )
+            }
             Text(
                 text = stringResource(R.string.welcome_lets_listen),
                 color = Color(0xFFD0D0D0),
