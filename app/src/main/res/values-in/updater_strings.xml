@@ -78,4 +78,17 @@
     <string name="new_update">Pembaruan baru</string>
     <string name="release_date_v">Dirilis pada: %1$s</string>
     <string name="update_size_v">Ukuran: %1$s MB</string>
+    <string name="channel_switch_to_nightly">Beralih ke nightly</string>
+    <string name="channel_switch_to_release">Beralih ke rilis</string>
+    <string name="channel_release_waits">Perlu rilis yang lebih baru</string>
+    <string name="channel_nightly_title">Ganti\nJalur</string>
+    <string name="channel_nightly_tagline">wah, lihat fitur-fitur baru yang keren ini! semoga lancar… ya, semoga.</string>
+    <string name="channel_nightly_question">Apakah kamu yakin?</string>
+    <string name="channel_nightly_warning">Build nightly bisa tidak stabil, dan kamu bisa mendapat hingga 5 pembaruan sehari, meski kemungkinannya kecil. Tapi ya begitulah. Kembali ke build rilis yang lebih lama juga bisa merusak datamu.</string>
+    <string name="channel_release_title">Kembali ke\nrilis</string>
+    <string name="channel_release_tagline">rilis yang lebih baru dari nightly-mu sudah keluar, jadi kamu bisa kembali.</string>
+    <string name="channel_release_warning">Kamu akan menerima rilis berikutnya sebagai pembaruan, dan nightly tidak akan muncul lagi.</string>
+    <string name="channel_yes">Ya</string>
+    <string name="channel_no">Tidak</string>
+    <string name="update_allow_unknown_apps">Izinkan Kiyo memasang aplikasi tidak dikenal di Pengaturan, lalu kembali dan tekan Pasang di sini lagi.</string>
 </resources>

@@ -17,4 +17,13 @@
     <string name="bedside_keep_awake_caption">Ponsel tidak akan tidur selama ini terbuka</string>
     <string name="bedside_lock_screen">Tampilkan di layar kunci</string>
     <string name="bedside_lock_screen_caption">Kunci ponsel saat ini terbuka, dan jam tetap ada saat layar menyala lagi</string>
+    <string name="bedside_like">Suka</string>
+    <string name="bedside_now_playing">Sedang diputar</string>
+    <string name="bedside_lock_ask_title">Tampilkan jam di layar kunci?</string>
+    <string name="bedside_lock_ask_body">Ponselmu menyembunyikan aplikasi dari layar kunci sampai kamu mengizinkannya. Di layar berikutnya, aktifkan \"Tampilkan di layar kunci\".</string>
+    <string name="bedside_lock_ask_allow">Izinkan</string>
+    <string name="bedside_lock_ask_later">Nanti saja</string>
+    <string name="bedside_lock_blocked">Ponselmu memblokir ini</string>
+    <string name="bedside_lock_blocked_caption">Ketuk untuk mengaktifkan \"Tampilkan di layar kunci\" untuk Kiyo</string>
+    <string name="bedside_lock_blocked_tag">PERBAIKI</string>
 </resources>

@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.kiyo.music.LocalDatabase
+import androidx.compose.ui.res.stringResource
 import com.kiyo.music.R
 import com.kiyo.music.ui.component.BoneColor
 import com.kiyo.music.ui.component.HomeCardHighlight
@@ -110,9 +111,9 @@ internal fun ArtistSubpageHeader(
                 )
                 if (isGrid != null) {
                     Spacer(Modifier.width(10.dp))
-                    LayoutToggle(icon = R.drawable.grid_view, selected = isGrid, description = "Grid") { onGridChange(true) }
+                    LayoutToggle(icon = R.drawable.grid_view, selected = isGrid, description = stringResource(R.string.lib_view_grid)) { onGridChange(true) }
                     Spacer(Modifier.width(6.dp))
-                    LayoutToggle(icon = R.drawable.list, selected = !isGrid, description = "List") { onGridChange(false) }
+                    LayoutToggle(icon = R.drawable.list, selected = !isGrid, description = stringResource(R.string.lib_view_list)) { onGridChange(false) }
                 }
             }
             if (!subtitle.isNullOrBlank()) {

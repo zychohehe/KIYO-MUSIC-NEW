@@ -52,12 +52,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.kiyo.music.R
-import com.kiyo.music.scrobble.ScrobbleSite
 import com.kiyo.music.ui.screens.devices.showDeviceIntegration
 import com.kiyo.music.ui.screens.settings.importsync.YouTubeSyncRoute
-import com.kiyo.music.ui.screens.settings.integrations.IntegrationsRoute
 import com.kiyo.music.ui.screens.settings.integrations.discord.DiscordRoute
-import com.kiyo.music.ui.screens.settings.integrations.scrobbleServiceRoute
 import com.kiyo.music.constants.ProfilePicUriKey
 import com.kiyo.music.ui.component.GlassState
 import com.kiyo.music.ui.component.SettingsHighlight
@@ -243,10 +240,6 @@ private val SettingsIndex = listOf(
 
     // Integrations
     SettingsEntry("Discord", "Integrations", DiscordRoute, "discord rich presence rpc status activity listening playing profile behaviour pause clear"),
-    SettingsEntry("Last.fm", "Integrations", scrobbleServiceRoute(ScrobbleSite.LASTFM), "lastfm scrobble scrobbling history stats account sign in"),
-    SettingsEntry("Libre.fm", "Integrations", scrobbleServiceRoute(ScrobbleSite.LIBREFM), "librefm scrobble scrobbling history stats account sign in"),
-    SettingsEntry("Now Playing", "Integrations", scrobbleServiceRoute(ScrobbleSite.LASTFM), "scrobble now playing status profile lastfm librefm"),
-    SettingsEntry("Send likes", "Integrations", scrobbleServiceRoute(ScrobbleSite.LASTFM), "love loved songs lastfm librefm scrobble"),
     SettingsEntry("YouTube Music", "Integrations", YouTubeSyncRoute, "youtube ytm sync account sign in likes library playlists history"),
 
     // Storage
@@ -495,13 +488,6 @@ fun KiyoSettingsScreen(navController: NavController, pane: SettingsPane? = null)
                             iconRes = R.drawable.storage,
                             selected = selected == "storage_settings",
                             onClick = { open("storage_settings") }
-                        )
-
-                        CategoryBubble(
-                            title = stringResource(R.string.integrations),
-                            iconRes = R.drawable.integration,
-                            selected = selected == IntegrationsRoute,
-                            onClick = { open(IntegrationsRoute) }
                         )
 
                         CategoryBubble(

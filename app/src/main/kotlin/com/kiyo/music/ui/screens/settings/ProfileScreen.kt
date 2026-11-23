@@ -233,7 +233,7 @@ private enum class HeaderStage { Collapsed, Pulling, Expanding, Expanded, Scanni
 private val PageCard = Color.Black
 
 // the new style: no cards, just sections on the page, each closed by a hairline
-private fun Modifier.flatSection(): Modifier = drawBehind {
+internal fun Modifier.flatSection(): Modifier = drawBehind {
     drawLine(
         color = Color.White.copy(alpha = 0.10f),
         start = Offset(0f, size.height - 0.5.dp.toPx()),
@@ -617,7 +617,7 @@ fun ProfileScreen(navController: NavController) {
                         if (landscape) Spacer(Modifier.height(statusBarTop + 30.dp))
                         Spacer(Modifier.height(24.dp))
                         ListeningTimeCard(totalListeningMs, onViewStats = { navController.navigate("stats") })
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(24.dp))
                         val openDevSpace: (Int) -> Unit = { personIndex ->
                             zoomOutState.dismissAll()
                             navController.navigate("developer_space?person=$personIndex")
@@ -634,12 +634,14 @@ fun ProfileScreen(navController: NavController) {
                                 }
                             },
                         )
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(32.dp))
+                        // the services and their sign-ins: discord, youtube music, backup
+                        ProfileIntegrations(navController)
+                        Spacer(Modifier.height(32.dp))
                         DeveloperCard(onClick = { navController.navigate("developer_space") })
-                        Spacer(Modifier.height(16.dp))
                         DiscordCard(onClick = { context.openDevUrl(WhatsAppUrl) })
-                        Spacer(Modifier.height(28.dp))
-                        Text(stringResource(R.string.profile_settings_title), style = PageTitle.copy(fontSize = 15.sp), modifier = Modifier.padding(start = 2.dp, bottom = 10.dp))
+                        Spacer(Modifier.height(32.dp))
+                        ProfileSectionTitle(stringResource(R.string.profile_settings_title))
                         OpenSettingsRow(onClick = { navController.navigate("kiyo_settings") })
                         Spacer(Modifier.height(180.dp))
                     }

@@ -101,4 +101,21 @@
     <string name="audiopass_blocker_lossy_direct">Lagu lossy juga sampai ke DAC tanpa diubah. Lagu itu hanya sudah dikompres sebelum sampai sini.</string>
     <string name="audiopass_blockers_restore">Nyalakan lagi</string>
     <string name="audiopass_beta">BETA</string>
+    <string name="audiopass_stat_label">Passthrough</string>
+    <string name="audiopass_stat_off">Mati, lagu melewati mixer Android</string>
+    <string name="audiopass_stat_song_rate">Sample rate lagu: Android masih mencampur suaranya</string>
+    <string name="audiopass_stat_old_android">Mode ini memerlukan Android %1$s</string>
+    <string name="audiopass_stat_blocked">Menunggu sampai ini dimatikan: %1$s</string>
+    <string name="audiopass_stat_skip_busy">Lagu lain dalam crossfade sedang memakai DAC</string>
+    <string name="audiopass_stat_skip_format">Format lagu ini tidak bisa langsung dikirim ke DAC</string>
+    <string name="audiopass_stat_skip_lossy">Lagu lossy diputar dengan cara biasa di mode ini</string>
+    <string name="audiopass_stat_skip_decoded_16">Lagu ini dimulai sebelum passthrough aktif, jadi sudah dipotong menjadi 16-bit. Lagu berikutnya langsung ke DAC</string>
+    <string name="audiopass_stat_skip_fell">Sample rate dan kedalaman bit ini tadi gagal membuka DAC, jadi diputar dengan cara biasa</string>
+    <string name="audiopass_stat_skip_no_dac">DAC untuk mode ini tidak ditemukan. Colokkan atau pilih mode lain</string>
+    <string name="audiopass_stat_skip_no_access">Kiyo belum bisa memakai DAC. Ketuk Izinkan akses USB di halaman Audio Pass</string>
+    <string name="audiopass_stat_skip_dac_cant">DAC-mu tidak punya pengaturan untuk sample rate dan kedalaman bit lagu ini</string>
+    <string name="audiopass_stat_unknown">Aktif, tetapi lagu ini diputar dengan cara biasa</string>
+    <string name="audiopass_offer_title">Ada beberapa hal yang menghalangi</string>
+    <string name="audiopass_offer_body">Passthrough hanya menerima lagu saat tidak ada yang mengubah suara. Yang sedang aktif sekarang:</string>
+    <string name="audiopass_offer_keep">Biarkan tetap aktif</string>
 </resources>

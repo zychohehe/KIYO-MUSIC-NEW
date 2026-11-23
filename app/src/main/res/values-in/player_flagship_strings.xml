@@ -19,4 +19,7 @@
     <string name="flagship_layout_three_caption">Tiga tombol besar, tanpa bingkai</string>
     <string name="flagship_layout_ten">Dengan lompat 10 detik</string>
     <string name="flagship_layout_ten_caption">Lompat 10 detik ke dua arah, tombol putar dalam lingkaran</string>
+    <string name="flagship_repeat">Ulangi</string>
+    <string name="flagship_layout_queue_repeat">Dengan antrean dan ulangi</string>
+    <string name="flagship_layout_queue_repeat_caption">Antrean dan ulangi di bagian luar, tombol putar berbentuk lingkaran</string>
 </resources>

@@ -54,8 +54,6 @@ import com.kiyo.music.constants.DiscordAccessTokenKey
 import com.kiyo.music.constants.FloatingLyricsKey
 import com.kiyo.music.constants.HomeStyleKey
 import com.kiyo.music.constants.LarpModeKey
-import com.kiyo.music.constants.LastFMSessionKey
-import com.kiyo.music.constants.LibreFmSessionKey
 import com.kiyo.music.constants.LyricsMotionStyleKey
 import com.kiyo.music.constants.PauseOnMute
 import com.kiyo.music.constants.PlayerStyleKey
@@ -66,12 +64,10 @@ import com.kiyo.music.constants.transitionModeOf
 import com.kiyo.music.di.AudioLabEntryPoint
 import com.kiyo.music.eq.EqSettings
 import com.kiyo.music.playback.audio.AudioOutputs
-import com.kiyo.music.scrobble.ScrobbleSite
 import com.kiyo.music.ui.component.SettingsHighlight
 import com.kiyo.music.ui.screens.devices.DeviceIntegrationRoute
 import com.kiyo.music.ui.screens.settings.importsync.ImportSyncRoute
 import com.kiyo.music.ui.screens.settings.integrations.discord.DiscordRoute
-import com.kiyo.music.ui.screens.settings.integrations.scrobbleServiceRoute
 import com.kiyo.music.ui.theme.InterFontFamily
 import com.kiyo.music.utils.PreferencesCache
 import com.kiyo.music.utils.dataStore
@@ -277,13 +273,6 @@ private val RecommendedOptions = listOf(
     ),
 
     // other apps and devices
-    RecommendedSetting(
-        titleRes = R.string.settings_rec_lastfm,
-        pageRes = R.string.integrations,
-        route = scrobbleServiceRoute(ScrobbleSite.LASTFM),
-        icon = { painterResource(R.drawable.music_history) },
-        applies = { it.prefs[LastFMSessionKey].isNullOrEmpty() && it.prefs[LibreFmSessionKey].isNullOrEmpty() },
-    ),
     RecommendedSetting(
         titleRes = R.string.settings_rec_discord,
         pageRes = R.string.integrations,

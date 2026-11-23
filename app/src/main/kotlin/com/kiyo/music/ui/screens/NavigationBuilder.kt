@@ -424,10 +424,6 @@ fun NavGraphBuilder.navigationBuilder(
         com.kiyo.music.ui.screens.settings.NowPlayingSettingsScreen(navController = navController)
     }
 
-    composable(com.kiyo.music.ui.screens.settings.integrations.IntegrationsRoute) {
-        com.kiyo.music.ui.screens.settings.integrations.IntegrationsScreen(navController = navController)
-    }
-
     composable(com.kiyo.music.ui.screens.settings.integrations.spotify.SpotifyRoute) {
         com.kiyo.music.ui.screens.settings.integrations.spotify.SpotifyScreen(navController = navController)
     }
@@ -438,16 +434,6 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable(com.kiyo.music.ui.screens.settings.integrations.backup.BackupRoute) {
         com.kiyo.music.ui.screens.settings.integrations.backup.BackupScreen(navController = navController)
-    }
-
-    composable(
-        route = com.kiyo.music.ui.screens.settings.integrations.ScrobbleServiceRoute,
-        arguments = listOf(navArgument("site") { type = NavType.StringType }),
-    ) { entry ->
-        val site = com.kiyo.music.scrobble.ScrobbleSite.entries
-            .find { it.name == entry.arguments?.getString("site") }
-            ?: com.kiyo.music.scrobble.ScrobbleSite.LASTFM
-        com.kiyo.music.ui.screens.settings.integrations.ScrobbleServiceScreen(navController = navController, site = site)
     }
 
     composable(com.kiyo.music.ui.screens.settings.ProxySettingsRoute) {

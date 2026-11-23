@@ -27,8 +27,6 @@ import androidx.navigation.NavController
 import com.kiyo.music.R
 import com.kiyo.music.ui.screens.settings.devspace.DevPlaygroundRoute
 import com.kiyo.music.ui.screens.settings.importsync.ImportSyncRoute
-import com.kiyo.music.ui.screens.settings.integrations.IntegrationsRoute
-import com.kiyo.music.ui.screens.settings.integrations.ScrobbleServiceRoute
 import com.kiyo.music.ui.screens.settings.integrations.backup.BackupRoute
 import com.kiyo.music.ui.screens.settings.integrations.discord.DiscordRoute
 import com.kiyo.music.ui.screens.settings.modules.ModulesRoute
@@ -52,9 +50,7 @@ val SettingsPaneRoutes = setOf(
     "customisation_settings",
     "gesture_settings",
     StorageRoute,
-    IntegrationsRoute,
     DiscordRoute,
-    ScrobbleServiceRoute,
     BackupRoute,
     ProxySettingsRoute,
     ModulesRoute,
