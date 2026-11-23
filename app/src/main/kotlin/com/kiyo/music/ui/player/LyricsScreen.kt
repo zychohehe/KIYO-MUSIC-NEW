@@ -45,6 +45,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
@@ -314,12 +316,30 @@ fun LyricsScreen(
     // romanisation and translation, shared with the player styles that perform the lyrics
     LyricsReadings(lines, mediaMetadata?.id, viewModel.database, lyricsEntity)
 
-    val currentIndex by remember(lines, unsynced) {
-        derivedStateOf { if (unsynced) -1 else LyricsUtils.findCurrentLineIndex(lines, progress.position + lyricsOffsetMs) }
+    // The line that lights up and the line the list scrolls to are worked out from the same per-frame
+    // clock as the sweep, not the 66ms poller. Before, the highlight could trail the sweep by up to a
+    // poll, which is what made the lyrics look out of sync. The value only changes when the line does,
+    // so the page recomposes on line changes, not on every frame.
+    val currentIndex by produceState(-1, lines, unsynced, positionProvider) {
+        while (true) {
+            val playing = playerConnection.player.isPlaying
+            if (playing) withFrameNanos { value = lineIndexAt(lines, unsynced, positionProvider()) }
+            else {
+                value = lineIndexAt(lines, unsynced, positionProvider())
+                delay(120)
+            }
+        }
     }
 
-    val anchorIndex by remember(lines, unsynced) {
-        derivedStateOf { if (unsynced) -1 else lyricAnchorIndex(lines, progress.position + lyricsOffsetMs) }
+    val anchorIndex by produceState(-1, lines, unsynced, positionProvider) {
+        while (true) {
+            val playing = playerConnection.player.isPlaying
+            if (playing) withFrameNanos { value = anchorIndexAt(lines, unsynced, positionProvider()) }
+            else {
+                value = anchorIndexAt(lines, unsynced, positionProvider())
+                delay(120)
+            }
+        }
     }
 
     // Every instrumental gap in the song, as its own list row. Building these up front — rather
@@ -871,6 +891,13 @@ fun LyricsScreen(
 internal const val NoInterlude = Int.MIN_VALUE
 
 // the line the list rests on: the sung one, or an earlier one whose words are still running into it
+// positionMs already carries the lyrics offset (PlaybackClock adds it), so it is not added again here
+private fun lineIndexAt(lines: List<LyricsEntry>, unsynced: Boolean, positionMs: Long): Int =
+    if (unsynced) -1 else LyricsUtils.findCurrentLineIndex(lines, positionMs)
+
+private fun anchorIndexAt(lines: List<LyricsEntry>, unsynced: Boolean, positionMs: Long): Int =
+    if (unsynced) -1 else lyricAnchorIndex(lines, positionMs)
+
 internal fun lyricAnchorIndex(lines: List<LyricsEntry>, positionMs: Long): Int {
     var i = LyricsUtils.findCurrentLineIndex(lines, positionMs)
     // findCurrentLineIndex returns lines.size once playback is past the final line. Don't
