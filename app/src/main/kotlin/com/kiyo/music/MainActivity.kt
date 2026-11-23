@@ -1383,8 +1383,8 @@ class MainActivity : ComponentActivity() {
                         // these pages already draw their own avatar in their header, a second one would sit on top of it
                         currentRoute != Screens.Search.route &&
                         currentRoute != Screens.Library.route &&
-                        !currentRoute.startsWith("search/") &&
-                        !currentRoute.startsWith("artist/")
+                        currentRoute?.startsWith("search/") != true &&
+                        currentRoute?.startsWith("artist/") != true
                     if (showAvatar) {
                         Box(Modifier.fillMaxSize()) {
                             com.kiyo.music.ui.component.ProfileAvatarButton(
