@@ -215,6 +215,9 @@ class TabOwnership(private val navigationItems: List<Screens>) {
     }
 }
 
+/** How much of the dark glass covers the blur behind the nav bar. Lower = more transparent (the old look was 0.78). */
+internal const val NavBarTintAlpha = 0.42f
+
 /** The bar itself, a stadium the mini player's 64dp matches. */
 internal val NavBarHeight = 64.dp
 internal val NavBarShape = RoundedCornerShape(50)
@@ -313,6 +316,8 @@ fun AppNavigationBar(
                     accentWash = accentWash,
                     modifier = Modifier.fillMaxSize(),
                     pill = glassPill,
+                    tintAlpha = NavBarTintAlpha,
+                    foundationAlpha = NavBarTintAlpha,
                 )
 
                 Row(
@@ -346,7 +351,12 @@ fun AppNavigationBar(
             if (searchItem != null) {
                 SearchOrb(
                     screen = searchItem,
-                    onSearch = onSearchDoubleTap ?: { onItemClick(searchItem, false) },
+                    // one tap opens the Search page and puts the cursor in its field, ready to type.
+                    // (before, the tap only asked the page to focus: from any other tab nothing opened)
+                    onSearch = {
+                        onItemClick(searchItem, selectedTabRoute == searchItem.route)
+                        onSearchDoubleTap?.invoke()
+                    },
                     glassState = glassState,
                     pureBlack = pureBlack,
                     accentWash = accentWash,
@@ -395,6 +405,8 @@ private fun SearchOrb(
             pureBlack = pureBlack,
             accentWash = accentWash,
             modifier = Modifier.fillMaxSize(),
+            tintAlpha = NavBarTintAlpha,
+            foundationAlpha = NavBarTintAlpha,
         )
         Icon(
             painter = icon,
@@ -490,7 +502,8 @@ internal fun RowScope.NavTab(
     val lastTap = remember { longArrayOf(0L) }
     val lit = animateFloatAsState(
         targetValue = if (isSelected) 1f else 0f,
-        animationSpec = spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMediumLow),
+        // a little less bounce than before, so lighting a tab glides instead of wobbling
+        animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMediumLow),
         label = "nav_tab_lit"
     )
 

@@ -5,6 +5,8 @@ package com.kiyo.music.ui.screens.setup
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -74,7 +76,8 @@ import kotlin.math.min
 fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
     val clock = rememberWelcomeClock()
     val enter = remember { Animatable(0f) }
-    LaunchedEffect(Unit) { enter.animateTo(1f, tween(650, easing = FastOutSlowInEasing)) }
+    // a soft spring instead of a fixed tween: it eases in and settles without a hard stop
+    LaunchedEffect(Unit) { enter.animateTo(1f, spring(dampingRatio = 0.9f, stiffness = Spring.StiffnessLow)) }
     val leave by animateFloatAsState(
         targetValue = if (isHiding) 1f else 0f,
         animationSpec = tween(380, easing = FastOutSlowInEasing),
@@ -103,6 +106,19 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
             targetValue = 1f,
             animationSpec = infiniteRepeatable(tween(1400, easing = FastOutSlowInEasing), RepeatMode.Reverse),
             label = "welcomeHintAlpha",
+        )
+
+        // a faint violet glow behind the title, so the name sits on light instead of flat black
+        Box(
+            modifier = Modifier
+                .offset(x = layout.titleStart - (90f * u).dp, y = layout.titleTop - (50f * u).dp)
+                .size((360f * u).dp, (300f * u).dp)
+                .graphicsLayer { alpha = enter.value * (1f - leave) }
+                .background(
+                    Brush.radialGradient(
+                        listOf(Color(0x385B3FD0), Color(0x1A7F6CFF), Color.Transparent),
+                    ),
+                ),
         )
 
         WelcomeDots(layout.dots)

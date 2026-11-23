@@ -83,6 +83,10 @@ fun FrostedChromeGlass(
     surface: ChromeSurface = ChromeSurface.NavBar,
     // the lit tab's pill for a glass that draws it, given the bar's size; read while drawing
     pill: ((Size) -> ChromePill?)? = null,
+    // how much of the dark tint covers the blur: lower = more see-through (the nav bar uses less)
+    tintAlpha: Float = FrostTintAlpha,
+    // how solid the base under the blur is: lower lets the screen show through the bar's gaps
+    foundationAlpha: Float = 1f,
 ) {
     val moduleGlass = rememberChromeModuleGlass()
     if (moduleGlass != null && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
@@ -101,8 +105,8 @@ fun FrostedChromeGlass(
         GlassPillBackground(
             state = state,
             blurRadius = { GlassChromeBlurRadius },
-            tint = color.copy(alpha = FrostTintAlpha),
-            foundationColor = color,
+            tint = color.copy(alpha = tintAlpha),
+            foundationColor = color.copy(alpha = foundationAlpha),
             accentWash = accentWash,
             // Only reaches the margin's outer edge now, too far out to show.
             tileMode = android.graphics.Shader.TileMode.CLAMP,
