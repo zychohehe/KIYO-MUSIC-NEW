@@ -228,15 +228,35 @@ constructor(
         order: Int,
     ): ProviderCandidate? {
         if (!provider.isEnabled(context) || com.kiyo.music.utils.OfflineMode.isOn) return null
+        val rawTitle = mediaMetadata.title
+        val rawArtist = mediaMetadata.artists.joinToString { it.name }
         val lyrics = try {
             withTimeoutOrNull(ProviderTimeoutMs) {
-                provider.getLyrics(
-                    mediaMetadata.id,
-                    mediaMetadata.title,
-                    mediaMetadata.artists.joinToString { it.name },
-                    mediaMetadata.duration,
-                    mediaMetadata.album?.title,
-                ).onFailure { reportException(it) }.getOrNull()
+                suspend fun ask(title: String, artist: String): String? =
+                    provider.getLyrics(
+                        mediaMetadata.id,
+                        title,
+                        artist,
+                        mediaMetadata.duration,
+                        mediaMetadata.album?.title,
+                    ).onFailure { reportException(it) }.getOrNull()
+                        ?.takeIf { it.isNotBlank() && it != LYRICS_NOT_FOUND }
+
+                // First the title and artists exactly as the song has them. When a source finds
+                // nothing, try once more with the tidied title and the first artist only: tags like
+                // "(Official Video)", "feat. ..." or "- Topic" are the usual reason a source says
+                // "not found" for a song it really has.
+                ask(rawTitle, rawArtist) ?: run {
+                    val cleanTitle = cleanTitleForSearch(rawTitle)
+                    val cleanArtist = mediaMetadata.artists.firstOrNull()?.name?.trim().orEmpty()
+                    if (cleanTitle.isNotBlank() && cleanArtist.isNotBlank() &&
+                        (cleanTitle != rawTitle || cleanArtist != rawArtist)
+                    ) {
+                        ask(cleanTitle, cleanArtist)
+                    } else {
+                        null
+                    }
+                }
             }
         } catch (e: CancellationException) {
             throw e
@@ -596,6 +616,20 @@ constructor(
 
     companion object {
         private const val MAX_CACHE_SIZE = 3
+
+        private val TitleNoiseRegexes = listOf(
+            Regex("""\s*[(\[【][^)\]】]*(official|video|audio|lyric|lyrics|visuali[sz]er|hd|hq|4k|remaster|remastered|live|acoustic|version|edit|radio|clean|explicit|feat|ft\.?)[^)\]】]*[)\]】]""", RegexOption.IGNORE_CASE),
+            Regex("""\s+-\s+(official|video|audio|lyric|lyrics|visuali[sz]er|topic|remaster).*$""", RegexOption.IGNORE_CASE),
+            Regex("""\s+(feat\.?|ft\.?|featuring)\s+.*$""", RegexOption.IGNORE_CASE),
+            Regex("""\s*\|.*$"""),
+        )
+
+        /** A title with the usual video/feature noise taken off, for a second try at a source. */
+        private fun cleanTitleForSearch(title: String): String {
+            var cleaned = title.trim()
+            for (regex in TitleNoiseRegexes) cleaned = cleaned.replace(regex, "")
+            return cleaned.trim()
+        }
 
         /**
          * The provider of a lookup that couldn't go online (offline mode, or no network). Its
