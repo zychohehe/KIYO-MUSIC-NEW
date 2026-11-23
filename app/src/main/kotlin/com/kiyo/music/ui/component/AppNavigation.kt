@@ -22,6 +22,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.unit.Constraints
+import kotlin.math.roundToInt
+import com.kiyo.music.R
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
@@ -236,6 +240,8 @@ fun AppNavigationBar(
     onOpenRoute: (String) -> Unit = {},
     /** the player is over the app, so a look's moving bar can rest */
     obscured: () -> Boolean = { false },
+    /** 0 = the full pill, 1 = shrunk to one round tab while a page scrolls (the mini player widens into the room) */
+    collapse: () -> Float = { 0f },
 ) {
     // a look with a nav bar of its own draws it in this one's place
     val moduleBar = com.kiyo.music.modules.skin.ActiveSkin.bar
@@ -257,7 +263,7 @@ fun AppNavigationBar(
     val glassState = LocalGlassState.current ?: remember { GlassState() }
     val accentWash = rememberChromeAccentWash()
     // like the reference: the tabs share one glass pill, and Search is its own round button beside it
-    val pillItems = remember(navigationItems) { navigationItems.filter { it != Screens.Search } }
+    val pillItems = remember(navigationItems) { navigationItems.filter { it == Screens.Home || it == Screens.Search || it == Screens.Library } }
     val searchItem = remember(navigationItems) { navigationItems.firstOrNull { it == Screens.Search } }
     val selectedIndex = pillItems.indexOfFirst { it.route == selectedTabRoute }
     val tabCount = pillItems.size
@@ -282,16 +288,23 @@ fun AppNavigationBar(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
             Box(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
+                    .align(Alignment.CenterStart)
+                    // shrinks from the full pill to a circle as the page scrolls
+                    .layout { measurable, constraints ->
+                        val c = collapse().coerceIn(0f, 1f)
+                        val w = (constraints.maxWidth + (constraints.maxHeight - constraints.maxWidth) * c).roundToInt()
+                        val placeable = measurable.measure(Constraints.fixed(w, constraints.maxHeight))
+                        layout(w, constraints.maxHeight) { placeable.place(0, 0) }
+                    }
                     .press3D(maxTilt = 4f, pressedScale = 0.985f)
                     .then(if (moduleGlass?.shadow == false) Modifier else Modifier.dropShadow(NavBarShape, ChromeShadow))
                     .clip(NavBarShape)
                     .drawWithContent {
                         drawContent()
-                        if (moduleGlass?.outline != false) drawChromeOutline(Offset.Zero, size, cornerRadius = size.height / 2f)
+                        if (moduleGlass?.outline != false) drawGlassRim(size)
                     }
             ) {
                 FrostedChromeGlass(
@@ -306,7 +319,7 @@ fun AppNavigationBar(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = NavRowPadding)
-                        .navHighlight(pill, tabCount) { moduleGlass?.drawsPill != true }
+                        .navHighlight(pill, tabCount, color = LitCapsule, rim = true, alpha = { 1f - collapse().coerceIn(0f, 1f) }) { moduleGlass?.drawsPill != true }
                         .navPillDrag(pill, tabCount, selectedIndex) { index ->
                             pillItems.getOrNull(index)?.let { onItemClick(it, index == selectedIndex) }
                         },
@@ -322,17 +335,18 @@ fun AppNavigationBar(
                             onDoubleTap = null,
                             litTint = litTint,
                             alwaysLabel = true,
+                            asExplore = screen == Screens.Search,
+                            collapse = collapse().coerceIn(0f, 1f),
                         )
                     }
                 }
+            }
             }
 
             if (searchItem != null) {
                 SearchOrb(
                     screen = searchItem,
-                    isSelected = searchItem.route == selectedTabRoute,
-                    onItemClick = onItemClick,
-                    onDoubleTap = onSearchDoubleTap,
+                    onSearch = onSearchDoubleTap ?: { onItemClick(searchItem, false) },
                     glassState = glassState,
                     pureBlack = pureBlack,
                     accentWash = accentWash,
@@ -344,29 +358,19 @@ fun AppNavigationBar(
     }
 }
 
-/** Search as its own round glass button next to the tab pill. A second quick tap goes straight into typing. */
+/** Search as its own round glass button next to the tab pill: one tap goes straight into typing. */
 @Composable
 private fun SearchOrb(
     screen: Screens,
-    isSelected: Boolean,
-    onItemClick: (Screens, Boolean) -> Unit,
-    onDoubleTap: (() -> Unit)?,
+    onSearch: () -> Unit,
     glassState: GlassState,
     pureBlack: Boolean,
     accentWash: (() -> Color)?,
     moduleGlass: com.kiyo.music.modules.skin.ActiveGlass?,
     litTint: Color,
 ) {
-    val viewConfiguration = LocalViewConfiguration.current
     val interactionSource = remember { MutableInteractionSource() }
-    val lastTap = remember { longArrayOf(0L) }
-    val lit = animateFloatAsState(
-        targetValue = if (isSelected) 1f else 0f,
-        animationSpec = spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMediumLow),
-        label = "nav_search_lit"
-    )
-    val unlitIcon = coil3.compose.rememberAsyncImagePainter(model = screen.iconIdInactive)
-    val litIcon = coil3.compose.rememberAsyncImagePainter(model = screen.iconIdActive)
+    val icon = coil3.compose.rememberAsyncImagePainter(model = screen.iconIdInactive)
 
     Box(
         modifier = Modifier
@@ -376,17 +380,13 @@ private fun SearchOrb(
             .clip(CircleShape)
             .drawWithContent {
                 drawContent()
-                if (moduleGlass?.outline != false) drawChromeOutline(Offset.Zero, size, cornerRadius = size.height / 2f)
+                if (moduleGlass?.outline != false) drawGlassRim(size)
             }
-            .pressBounce(interactionSource, pressedScale = 0.9f)
+            .pressBounce(interactionSource, pressedScale = 0.88f)
             .clickable(
                 interactionSource = interactionSource,
                 indication = RemoteFocus,
-                onClick = {
-                    tabTapped(lastTap, viewConfiguration.doubleTapTimeoutMillis, onDoubleTap) {
-                        onItemClick(screen, isSelected)
-                    }
-                }
+                onClick = onSearch,
             ),
         contentAlignment = Alignment.Center
     ) {
@@ -396,42 +396,32 @@ private fun SearchOrb(
             accentWash = accentWash,
             modifier = Modifier.fillMaxSize(),
         )
-        // the lit state: the same soft disc the tab pill uses, drawn inside the circle
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .drawBehind {
-                    if (moduleGlass?.drawsPill == true) return@drawBehind
-                    drawCircle(
-                        color = ChromeHighlightColor,
-                        radius = size.minDimension / 2f - 8.dp.toPx(),
-                        alpha = lit.value.coerceIn(0f, 1f),
-                    )
-                }
-        )
         Icon(
-            painter = unlitIcon,
+            painter = icon,
             contentDescription = stringResource(screen.titleId),
             tint = Color.White,
-            modifier = Modifier
-                .size(24.dp)
-                .graphicsLayer {
-                    alpha = UnlitIconAlpha * (1f - lit.value.coerceIn(0f, 1f))
-                    compositingStrategy = CompositingStrategy.ModulateAlpha
-                }
-        )
-        Icon(
-            painter = litIcon,
-            contentDescription = null,
-            tint = litTint,
-            modifier = Modifier
-                .size(24.dp)
-                .graphicsLayer {
-                    alpha = lit.value.coerceIn(0f, 1f)
-                    compositingStrategy = CompositingStrategy.ModulateAlpha
-                }
+            modifier = Modifier.size(24.dp),
         )
     }
+}
+
+/** the lit tab's capsule: dark and a little glassy, as in the reference */
+private val LitCapsule = Color.Black.copy(alpha = 0.42f)
+
+/** the glass's edge: a thin rim that catches light at the top left and the bottom right */
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGlassRim(size: Size) {
+    val w = 1.2.dp.toPx()
+    drawRoundRect(
+        brush = Brush.linearGradient(
+            colors = listOf(Color.White.copy(alpha = 0.5f), Color.White.copy(alpha = 0.06f), Color.White.copy(alpha = 0.28f)),
+            start = Offset.Zero,
+            end = Offset(size.width, size.height),
+        ),
+        topLeft = Offset(w / 2f, w / 2f),
+        size = Size(size.width - w, size.height - w),
+        cornerRadius = CornerRadius(size.height / 2f - w / 2f),
+        style = androidx.compose.ui.graphics.drawscope.Stroke(width = w),
+    )
 }
 
 /**
@@ -490,6 +480,10 @@ internal fun RowScope.NavTab(
     litTint: Color = Color.White,
     /** the tab's name stays under its icon when it isn't lit (the phone bar); the wide bar keeps it for the lit tab only */
     alwaysLabel: Boolean = false,
+    /** this tab is the Explore page (the search page's tab): its own name and the grid icon */
+    asExplore: Boolean = false,
+    /** 0..1, the bar shrinking to its lit tab: the others narrow away and fade */
+    collapse: Float = 0f,
 ) {
     val viewConfiguration = LocalViewConfiguration.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -501,14 +495,16 @@ internal fun RowScope.NavTab(
     )
 
     // Both icons stay loaded, so lighting a tab never shows an empty frame while its filled icon loads.
-    val unlitIcon = coil3.compose.rememberAsyncImagePainter(model = screen.iconIdInactive)
-    val litIcon = coil3.compose.rememberAsyncImagePainter(model = screen.iconIdActive)
+    val unlitIcon = coil3.compose.rememberAsyncImagePainter(model = if (asExplore) R.drawable.grid_view else screen.iconIdInactive)
+    val litIcon = coil3.compose.rememberAsyncImagePainter(model = if (asExplore) R.drawable.grid_view else screen.iconIdActive)
+    val title = if (asExplore) stringResource(R.string.nav_explore) else stringResource(screen.titleId)
     val iconSize = if (screen == Screens.Home || screen == Screens.Search) 22.dp else 24.dp
 
     Box(
         modifier = Modifier
-            .weight(1f)
+            .weight((if (isSelected) 1f else 1f - collapse).coerceAtLeast(0.0001f))
             .fillMaxHeight()
+            .graphicsLayer { alpha = if (isSelected) 1f else 1f - collapse }
             .pressBounce(interactionSource, pressedScale = 0.85f)
             .clickable(
                 interactionSource = interactionSource,
@@ -522,9 +518,9 @@ internal fun RowScope.NavTab(
         contentAlignment = Alignment.Center
     ) {
         if (screen == Screens.Library) {
-            LibraryDownloadIcon { TabIcons(screen, unlitIcon, litIcon, iconSize, litTint, alwaysLabel) { lit.value } }
+            LibraryDownloadIcon { TabIcons(screen, title, unlitIcon, litIcon, iconSize, litTint, alwaysLabel, if (isSelected) collapse else 0f) { lit.value } }
         } else {
-            TabIcons(screen, unlitIcon, litIcon, iconSize, litTint, alwaysLabel) { lit.value }
+            TabIcons(screen, title, unlitIcon, litIcon, iconSize, litTint, alwaysLabel, if (isSelected) collapse else 0f) { lit.value }
         }
     }
 }
@@ -533,11 +529,13 @@ internal fun RowScope.NavTab(
 @Composable
 private fun TabIcons(
     screen: Screens,
+    title: String,
     unlitIcon: androidx.compose.ui.graphics.painter.Painter,
     litIcon: androidx.compose.ui.graphics.painter.Painter,
     iconSize: androidx.compose.ui.unit.Dp,
     litTint: Color,
     alwaysLabel: Boolean = false,
+    labelHidden: Float = 0f,
     lit: () -> Float,
 ) {
     Box(contentAlignment = Alignment.Center) {
@@ -546,14 +544,14 @@ private fun TabIcons(
             modifier = Modifier.graphicsLayer {
                 val l = lit().coerceIn(0f, 1f)
                 // the lit tab's icon lifts a little and grows, making room for its name underneath
-                translationY = -6.dp.toPx() * (if (alwaysLabel) 1f else l)
+                translationY = -6.dp.toPx() * (if (alwaysLabel) 1f else l) * (1f - labelHidden)
                 scaleX = 1f + 0.1f * l
                 scaleY = 1f + 0.1f * l
             },
         ) {
             Icon(
                 painter = unlitIcon,
-                contentDescription = stringResource(screen.titleId),
+                contentDescription = title,
                 tint = Color.White,
                 modifier = Modifier
                     .size(iconSize)
@@ -575,7 +573,7 @@ private fun TabIcons(
             )
         }
         Text(
-            text = stringResource(screen.titleId),
+            text = title,
             color = if (alwaysLabel) lerp(Color.White.copy(alpha = UnlitIconAlpha), litTint, lit().coerceIn(0f, 1f)) else litTint,
             fontSize = 10.sp,
             fontWeight = FontWeight.SemiBold,
@@ -584,7 +582,7 @@ private fun TabIcons(
             softWrap = false,
             modifier = Modifier.graphicsLayer {
                 val l = lit().coerceIn(0f, 1f)
-                alpha = if (alwaysLabel) 1f else l
+                alpha = (if (alwaysLabel) 1f else l) * (1f - labelHidden)
                 translationY = 17.dp.toPx() + (if (alwaysLabel) 0f else (1f - l) * 4.dp.toPx())
             },
         )

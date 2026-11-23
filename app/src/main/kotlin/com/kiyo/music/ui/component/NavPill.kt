@@ -19,6 +19,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
@@ -107,19 +108,37 @@ internal fun rememberNavPill(selectedIndex: Int): NavPillState {
 }
 
 /** kiyo's own pill behind the lit tab, left out while [drawn] says the look's glass draws it; only read while drawing, so it never recomposes the bar */
-internal fun Modifier.navHighlight(pill: NavPillState, tabCount: Int, drawn: () -> Boolean = { true }): Modifier = drawBehind {
+internal fun Modifier.navHighlight(
+    pill: NavPillState,
+    tabCount: Int,
+    color: Color = ChromeHighlightColor,
+    rim: Boolean = false,
+    alpha: () -> Float = { 1f },
+    drawn: () -> Boolean = { true },
+): Modifier = drawBehind {
     if (!drawn()) return@drawBehind
     val rect = pill.rect(size, tabCount, this) ?: return@drawBehind
     val lift = pill.lift.value
     // lifted, it swells a little past its slot and brightens, as if it rose off the bar
     val grow = lift * 3.dp.toPx()
     drawRoundRect(
-        color = ChromeHighlightColor.copy(alpha = ChromeHighlightColor.alpha * (1f + 0.7f * lift)),
+        color = color.copy(alpha = (color.alpha * (1f + 0.7f * lift)).coerceAtMost(1f)),
         topLeft = Offset(rect.left - grow, rect.top - grow),
         size = Size(rect.width + grow * 2f, rect.height + grow * 2f),
         cornerRadius = CornerRadius(rect.height / 2f + grow),
-        alpha = pill.shown.value,
+        alpha = pill.shown.value * alpha(),
     )
+    if (rim) {
+        val w = 1.dp.toPx()
+        drawRoundRect(
+            color = Color.White.copy(alpha = 0.22f),
+            topLeft = Offset(rect.left - grow + w / 2f, rect.top - grow + w / 2f),
+            size = Size(rect.width + grow * 2f - w, rect.height + grow * 2f - w),
+            cornerRadius = CornerRadius(rect.height / 2f + grow),
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = w),
+            alpha = pill.shown.value * alpha(),
+        )
+    }
 }
 
 // a finger on the bar lifts the pill under it; a sideways drag takes over from the tabs and picks the tab it ends on, a plain tap stays the tab's own

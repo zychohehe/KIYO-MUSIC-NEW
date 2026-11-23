@@ -522,19 +522,26 @@ internal fun ProfilePage(
         Spacer(Modifier.height(24.dp))
         Text(stringResource(R.string.onb_set_photo), color = Onb.Muted, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(12.dp))
-        val deviceTilt = rememberDeviceTilt()
-        ProfileIdCard(
-            username = username,
-            photo = photo,
-            cardNumber = cardNumber,
-            joinedText = joinedText,
-            onPhotoClick = onPhotoClick,
-            modifier = Modifier.graphicsLayer {
-                rotationX = deviceTilt.rotationX
-                rotationY = deviceTilt.rotationY
-                cameraDistance = 14f * density
-            },
-        )
+        // no card: just a round photo to tap
+        androidx.compose.foundation.layout.Box(
+            contentAlignment = androidx.compose.ui.Alignment.Center,
+            modifier = Modifier
+                .size(104.dp)
+                .clip(androidx.compose.foundation.shape.CircleShape)
+                .background(Onb.Badge)
+                .clickable(onClick = onPhotoClick),
+        ) {
+            if (photo != null) {
+                coil3.compose.AsyncImage(
+                    model = photo,
+                    contentDescription = null,
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else {
+                Icon(painterResource(R.drawable.person), contentDescription = null, tint = Color(0xFF1C1C1C), modifier = Modifier.size(44.dp))
+            }
+        }
     }
 }
 

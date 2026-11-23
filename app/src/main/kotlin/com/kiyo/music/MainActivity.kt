@@ -1115,7 +1115,8 @@ class MainActivity : ComponentActivity() {
                                                 val progress = playerBottomSheetState.progress.coerceIn(0f, 1f)
                                                 // the bar slides down when a page scrolls down and back up when it scrolls up;
                                                 // opening the player takes it away too
-                                                translationY = navBarTotalHeight.toPx() * (progress + (1f - progress) * navHide.value)
+                                                // the tabs shrink to one round tab on scroll (see AppNavigationBar), they no longer slide away
+                                                translationY = navBarTotalHeight.toPx() * progress
                                                 alpha = (1f - progress / 0.6f).coerceIn(0f, 1f)
                                             }
                                         // the wide pill shrinks onto the tabs while nothing is playing, read while laying out
@@ -1135,7 +1136,15 @@ class MainActivity : ComponentActivity() {
                                             )
                                         }
 
-                                        CompositionLocalProvider(com.kiyo.music.ui.component.LocalMiniPillFrame provides miniPill) {
+                                        // scrolled down: the mini player slides into the tab row and widens between the round tab and the search button
+                                        val miniNow = if (wideBar == null) {
+                                            val room = (64.dp + 10.dp) * navHide.value
+                                            com.kiyo.music.ui.component.MiniPillFrame(
+                                                start = miniPill.start + room, end = miniPill.end + room,
+                                                merged = miniPill.merged, withPrevious = miniPill.withPrevious, height = miniPill.height,
+                                            )
+                                        } else miniPill
+                                        CompositionLocalProvider(com.kiyo.music.ui.component.LocalMiniPillFrame provides miniNow) {
                                             BottomSheetPlayer(
                                                 state = playerBottomSheetState,
                                                 navController = navController,
@@ -1183,6 +1192,7 @@ class MainActivity : ComponentActivity() {
                                                     navController.navigateToTab(route)
                                                 },
                                                 obscured = { playerBottomSheetState.progress > 0.001f },
+                                                collapse = { navHide.value },
                                                 modifier = barMotion,
                                             )
                                         }

@@ -166,34 +166,6 @@ internal fun HelloCardStep(
             }
         }
 
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            confetti.draw(this, origin = Offset(size.width / 2f, size.height * cardCenterFromTop), time = time - 0.15f)
-        }
-
-        ProfileIdCard(
-            username = card.username,
-            photo = card.photo,
-            cardNumber = card.cardNumber,
-            joinedText = card.joinedText,
-            silver = true,
-            sheen = { 0.5f + (tiltY.value + deviceTilt.rotationY + cos(time * 1.4f) * 7f) / 45f },
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = (maxHeight * cardCenterFromTop - (cardWidth / IdCardAspect) / 2).coerceAtLeast(0.dp))
-                .width(cardWidth)
-                .graphicsLayer {
-                    val enter = easeOutBack((time / 0.75f).coerceIn(0f, 1f))
-                    val s = 0.6f + 0.4f * enter
-                    scaleX = s
-                    scaleY = s
-                    alpha = (time / 0.25f).coerceIn(0f, 1f)
-                    rotationZ = -8f * enter
-                    rotationY = (1f - enter) * -55f + tiltY.value + deviceTilt.rotationY + cos(time * 1.4f) * 7f
-                    rotationX = tiltX.value + deviceTilt.rotationX + sin(time * 1.1f) * 4f
-                    cameraDistance = 14f * this.density
-                },
-        )
-
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
@@ -268,26 +240,6 @@ internal fun DoneStep(card: CardInfo, onFinished: () -> Unit) {
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.graphicsLayer { alpha = ((time - 0.2f) / 0.4f).coerceIn(0f, 1f) },
-            )
-            Spacer(Modifier.height(36.dp))
-            ProfileIdCard(
-                username = card.username,
-                photo = card.photo,
-                cardNumber = card.cardNumber,
-                joinedText = card.joinedText,
-                silver = true,
-                sheen = { 0.3f + time / 3f + deviceTilt.rotationY / 45f },
-                modifier = Modifier
-                    .width(cardWidth)
-                    .graphicsLayer {
-                        val p = easeOutBack(((time - 0.15f) / 0.8f).coerceIn(0f, 1f))
-                        translationY = (1f - p) * size.height * 1.4f
-                        alpha = ((time - 0.15f) / 0.3f).coerceIn(0f, 1f)
-                        rotationZ = -6f + (1f - p) * 10f
-                        rotationY = sin(time * 1.2f) * 6f + deviceTilt.rotationY
-                        rotationX = deviceTilt.rotationX
-                        cameraDistance = 14f * this.density
-                    },
             )
         }
     }
