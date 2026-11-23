@@ -257,6 +257,54 @@
                 android:resource="@xml/shortcuts" />
         </activity-alias>
         <activity-alias
+            android:name=".IconMarkGradSunset"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_mark_grad_sunset"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/app_icon_mark_grad_sunset"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconMarkGradOcean"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_mark_grad_ocean"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/app_icon_mark_grad_ocean"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".IconMarkGradAurora"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_mark_grad_aurora"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/app_icon_mark_grad_aurora"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
             android:name=".IconMarkMaterial"
             android:enabled="false"
             android:exported="true"

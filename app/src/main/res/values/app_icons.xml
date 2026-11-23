@@ -18,4 +18,7 @@
     <color name="app_icon_custom_pink">#E93D82</color>
     <color name="app_icon_custom_graphite">#2E3135</color>
     <color name="app_icon_custom_cream">#F1E7D0</color>
+    <color name="app_icon_grad_sunset">#FF7A59</color>
+    <color name="app_icon_grad_ocean">#29B6F6</color>
+    <color name="app_icon_grad_aurora">#7C4DFF</color>
 </resources>

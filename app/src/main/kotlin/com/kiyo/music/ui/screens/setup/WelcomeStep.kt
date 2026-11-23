@@ -22,6 +22,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.text.TextStyle
@@ -134,11 +135,14 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
                 .offset(x = layout.titleStart - (90f * u).dp, y = layout.titleTop - (50f * u).dp)
                 .size((360f * u).dp, (300f * u).dp)
                 .graphicsLayer { alpha = enter.value * (1f - leave) }
-                .background(
-                    Brush.radialGradient(
-                        listOf(Color(0x2E6C8CA8), Color(0x146C8CA8), Color.Transparent),
-                    ),
-                ),
+                .drawBehind {
+                    // the glow drifts between steel blue and violet
+                    val k = 0.5f + 0.5f * kotlin.math.sin(clock.seconds.floatValue * 0.6f)
+                    val c = androidx.compose.ui.graphics.lerp(Color(0xFF6C8CA8), Color(0xFF8A6CFF), k)
+                    drawRect(
+                        Brush.radialGradient(listOf(c.copy(alpha = 0.18f), c.copy(alpha = 0.08f), Color.Transparent)),
+                    )
+                },
         )
 
         WelcomeDots(layout.dots)
@@ -193,10 +197,9 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
                     .border(1.dp, Color.White.copy(alpha = 0.18f), RoundedCornerShape(22f * u)),
                 contentAlignment = Alignment.Center,
             ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_launcher_mark),
-                    contentDescription = null,
-                    modifier = Modifier.size((118f * u).dp),
+                com.kiyo.music.ui.screens.setup.welcome.KiyoLogoMark(
+                    modifier = Modifier.size((50f * u).dp),
+                    seconds = { clock.seconds.floatValue },
                 )
             }
             // lencana kecil bergaya kaca di atas sapaan

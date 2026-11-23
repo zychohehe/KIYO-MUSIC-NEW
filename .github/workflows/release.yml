@@ -47,9 +47,32 @@ jobs:
           echo "code=$CODE"       >> "$GITHUB_OUTPUT"
           echo "tag=v${VERSION}-build${BUILD}" >> "$GITHUB_OUTPUT"
 
+  # lint catches missing resources and broken strings before anything is published
+  verify:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          java-version: "21"
+          distribution: temurin
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-cleanup: on-success
+      - name: Install NDK and CMake
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;27.0.12077973" "cmake;3.22.1" > /dev/null
+      - name: Lint
+        run: |
+          chmod +x gradlew
+          ./gradlew --console=plain :app:lintUniversalFossDebug --warning-mode summary
+
   build:
     name: Build ${{ matrix.abi }}
-    needs: meta
+    needs: [meta, verify]
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
@@ -61,6 +84,10 @@ jobs:
           - abi: universal
             task: assembleUniversalFossRelease
             dir: universalFoss
+          # a lighter arm64-only APK as an extra download (nearly every phone since 2016)
+          - abi: arm64
+            task: assembleArm64FossRelease
+            dir: arm64Foss
     steps:
       - uses: actions/checkout@v5
 

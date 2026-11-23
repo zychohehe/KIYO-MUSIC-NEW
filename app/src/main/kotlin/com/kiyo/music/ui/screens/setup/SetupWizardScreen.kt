@@ -140,7 +140,7 @@ fun SetupWizardScreen(
             scope.launch {
                 val error = vm.importBackup(uri)
                 backupError = error
-                if (error == null) go(Step.Profile)
+                if (error == null) go(Step.Hello)
             }
         }
     }
@@ -249,12 +249,12 @@ fun SetupWizardScreen(
         val parsed = readyImport ?: return@LaunchedEffect
         vm.startImport(parsed)
         session?.consumeReady()
-        go(Step.Profile)
+        go(Step.Hello)
     }
 
     // the account's own name and picture start the profile, once
     LaunchedEffect(step) {
-        if (step != Step.Profile || prefilled) return@LaunchedEffect
+        if (step != Step.Hello || prefilled) return@LaunchedEffect
         prefilled = true
         if (username.isBlank()) vm.accountName()?.let { username = it }
         if (profilePicUri == null) {
@@ -268,7 +268,9 @@ fun SetupWizardScreen(
     val (crossmixMode, onCrossmixModeChange) = rememberEnumPreference(CrossmixModeKey, defaultValue = DefaultTransitionMode)
     val (disableAiFilter, onDisableAiFilterChange) = rememberPreference(DisableAiFilterKey, defaultValue = false)
 
-    val card = CardInfo(username = username, photo = profilePicUri, cardNumber = vm.cardNumber, joinedText = stringResource(R.string.profile_joined_at, vm.joinedDateText))
+    // no username is asked for any more: the account's name, or the app's own name, is used
+    val defaultName = stringResource(R.string.app_name)
+    val card = CardInfo(username = username.ifBlank { defaultName }, photo = profilePicUri, cardNumber = vm.cardNumber, joinedText = stringResource(R.string.profile_joined_at, vm.joinedDateText))
 
     fun afterHello(): Step = if (vm.blur?.verdict == BlurCapability.Verdict.Laggy) Step.BlurWarning else Step.LastOne
 
@@ -341,7 +343,7 @@ fun SetupWizardScreen(
 
                         Step.ImportAsk -> ImportAskPage(
                             onYes = { go(Step.ImportMode) },
-                            onSkip = { go(Step.Profile) },
+                            onSkip = { go(Step.Hello) },
                         )
 
                         Step.ImportMode -> ImportModePage(
@@ -406,7 +408,7 @@ fun SetupWizardScreen(
                                 // synced playlists come in through sync itself, linked rather than copied
                                 val selected = (sessionState as? AccountImportState.Choosing)?.selected.orEmpty()
                                 vm.startYouTubeSync(selected, likedId = "LM", choices = syncChoices)
-                                go(Step.Profile)
+                                go(Step.Hello)
                             },
                             onJustImport = { session?.readSelected() },
                             onBack = { if (sessionState is AccountImportState.Reading) session?.cancelReading() else back() },
@@ -453,7 +455,7 @@ fun SetupWizardScreen(
                             onFinished = {
                                 vm.saveCard()
                                 vm.closeProvider()
-                                onComplete(username.trim(), profilePicUri)
+                                onComplete(username.trim().ifBlank { defaultName }, profilePicUri)
                             },
                         )
                     }

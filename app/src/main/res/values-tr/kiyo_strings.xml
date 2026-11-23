@@ -762,6 +762,7 @@
     <string name="telegram_channel">Telegram</string>
     <string name="welcome_to">Hoş geldin:</string>
     <string name="welcome_lets_listen">Dinlemeye başlayalım!</string>
+    <string name="welcome_finale">Kiyo Music\'e hoş geldin</string>
     <string name="welcome_start">Başla</string>
     <string name="welcome_tap_anywhere">Devam etmek için herhangi bir yere dokun</string>
     <string-array name="welcome_words" translatable="false">

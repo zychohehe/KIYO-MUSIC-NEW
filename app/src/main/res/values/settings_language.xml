@@ -239,4 +239,7 @@
     <string name="settings_floating_lyrics">Floating lyrics</string>
     <string name="settings_floating_lyrics_desc">Keep the line being sung in a little bubble over other apps</string>
     <string name="settings_floating_lyrics_detail">Tap the cover for play and pause, or hold it to open Kiyo. Drag it and it snaps to the nearest edge. Drop it on Close to hide it until you\'re back in Kiyo, or on Don\'t show again to turn it off.</string>
+    <string name="app_icon_grad_sunset" translatable="false">Sunset</string>
+    <string name="app_icon_grad_ocean" translatable="false">Ocean</string>
+    <string name="app_icon_grad_aurora" translatable="false">Aurora</string>
 </resources>
