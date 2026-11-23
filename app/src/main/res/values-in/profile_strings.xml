@@ -29,8 +29,8 @@
 
     <!-- Community &amp; Settings -->
     <string name="profile_meet_dev_contributors">developer :3</string>
-    <string name="profile_join_discord">Gabung saluran WhatsApp kami!</string>
-    <string name="profile_discord_cd">WhatsApp</string>
+    <string name="profile_join_discord">Ikuti TikTok @a2unknowwn!</string>
+    <string name="profile_discord_cd">TikTok</string>
     <string name="profile_settings_title">Pengaturan</string>
     <string name="profile_open_settings">Buka pengaturan</string>
 
@@ -65,4 +65,6 @@
     <string name="profile_your_playlists">Playlist kamu</string>
     <string name="profile_top_artists">Artis teratas</string>
     <string name="profile_top_artists_empty">Artis yang paling sering kamu putar akan muncul di sini.</string>
+    <string name="profile_follow_desc">Kabar, tips, dan di balik layar</string>
+    <string name="profile_follow_button">Ikuti</string>
 </resources>

@@ -29,8 +29,8 @@
 
     <!-- Community & Settings -->
     <string name="profile_meet_dev_contributors">developer :3</string>
-    <string name="profile_join_discord">Join our WhatsApp channel!</string>
-    <string name="profile_discord_cd">WhatsApp</string>
+    <string name="profile_join_discord">Follow @a2unknowwn on TikTok!</string>
+    <string name="profile_discord_cd">TikTok</string>
     <string name="profile_settings_title">Settings</string>
     <string name="profile_open_settings">Open settings</string>
 
@@ -65,4 +65,6 @@
     <string name="profile_your_playlists">Your playlists</string>
     <string name="profile_top_artists">Top artists</string>
     <string name="profile_top_artists_empty">The artists you play the most will show up here.</string>
+    <string name="profile_follow_desc">News, tips and behind the scenes</string>
+    <string name="profile_follow_button">Follow</string>
 </resources>

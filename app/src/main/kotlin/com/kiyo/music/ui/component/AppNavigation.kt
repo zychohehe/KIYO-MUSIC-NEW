@@ -218,7 +218,7 @@ class TabOwnership(private val navigationItems: List<Screens>) {
 }
 
 /** How much of the dark glass covers the blur behind the nav bar. Lower = more transparent (the old look was 0.78). */
-internal const val NavBarTintAlpha = 0.42f
+internal const val NavBarTintAlpha = 0.5f
 
 /** The bar itself, a stadium the mini player's 64dp matches. */
 internal val NavBarHeight = 64.dp
@@ -269,7 +269,10 @@ fun AppNavigationBar(
     val accentWash = rememberChromeAccentWash()
     // like the reference: the tabs share one glass pill, and Search is its own round button beside it
     val pillItems = remember(navigationItems) { navigationItems.filter { it == Screens.Home || it == Screens.Search || it == Screens.Library } }
-    val selectedIndex = pillItems.indexOfFirst { it.route == selectedTabRoute }
+    // a page no pill tab owns (Settings and its sub-pages) falls back to Home, so the bar shrunk to one
+    // round tab still shows an icon there instead of an empty circle
+    val shownTabRoute = if (pillItems.any { it.route == selectedTabRoute }) selectedTabRoute else Screens.Home.route
+    val selectedIndex = pillItems.indexOfFirst { it.route == shownTabRoute }
     val tabCount = pillItems.size
     val pill = rememberNavPill(selectedIndex)
     // a look's glass can draw its own edge and its own pill, and then kiyo leaves its hairline, shadow or highlight out
@@ -336,7 +339,7 @@ fun AppNavigationBar(
                         // on the tab's own page, back to that page from deeper in) is the caller's call
                         NavTab(
                             screen = screen,
-                            isSelected = screen.route == selectedTabRoute,
+                            isSelected = screen.route == shownTabRoute,
                             onItemClick = onItemClick,
                             onDoubleTap = null,
                             litTint = litTint,
@@ -411,14 +414,14 @@ private fun SettingsOrb(
 }
 
 /** the lit tab's capsule: dark and a little glassy, as in the reference */
-private val LitCapsule = Color.Black.copy(alpha = 0.42f)
+private val LitCapsule = Color.White.copy(alpha = 0.12f)
 
 /** the glass's edge: a thin rim that catches light at the top left and the bottom right */
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawGlassRim(size: Size) {
     val w = 1.2.dp.toPx()
     drawRoundRect(
         brush = Brush.linearGradient(
-            colors = listOf(Color.White.copy(alpha = 0.5f), Color.White.copy(alpha = 0.06f), Color.White.copy(alpha = 0.28f)),
+            colors = listOf(Color.White.copy(alpha = 0.32f), Color.White.copy(alpha = 0.04f), Color.White.copy(alpha = 0.18f)),
             start = Offset.Zero,
             end = Offset(size.width, size.height),
         ),

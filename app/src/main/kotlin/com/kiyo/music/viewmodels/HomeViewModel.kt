@@ -54,6 +54,7 @@ import com.kiyo.music.utils.HomeVideo
 import com.kiyo.music.utils.NotRecommended
 import com.kiyo.music.utils.SongVersions
 import com.kiyo.music.utils.SyncUtils
+import androidx.datastore.preferences.core.edit
 import com.kiyo.music.utils.dataStore
 import com.kiyo.music.utils.get
 import com.kiyo.music.utils.reportException
@@ -1244,6 +1245,8 @@ class HomeViewModel @Inject constructor(
                         YouTube.accountInfo().onSuccess { info ->
                             accountName.value = info.name
                             accountImageUrl.value = info.thumbnailUrl
+                            // kept so the avatar on the other pages can show the same photo as Home
+                            context.dataStore.edit { it[com.kiyo.music.constants.AccountImageUrlKey] = info.thumbnailUrl.orEmpty() }
                         }.onFailure {
                             reportException(it)
                         }
@@ -1252,6 +1255,7 @@ class HomeViewModel @Inject constructor(
                     } else {
                         accountName.value = "Guest"
                         accountImageUrl.value = null
+                        context.dataStore.edit { it.remove(com.kiyo.music.constants.AccountImageUrlKey) }
                         accountPlaylists.value = null
                     }
                 }

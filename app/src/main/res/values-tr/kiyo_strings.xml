@@ -766,7 +766,6 @@
     <string-array name="welcome_words" translatable="false">
         <item>WELCOME</item>
         <item>SELAMAT DATANG</item>
-        <item>ようこそ</item>
         <item>欢迎</item>
         <item>환영합니다</item>
         <item>BIENVENIDO</item>

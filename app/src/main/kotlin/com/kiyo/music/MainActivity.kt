@@ -1371,6 +1371,23 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
+                    // the profile avatar on every page but Home (Home draws its own) and Settings (its own header)
+                    val showAvatar = !playerOpen && currentRoute != null &&
+                        currentRoute != Screens.Home.route &&
+                        currentRoute != Screens.Settings.route &&
+                        currentRoute != com.kiyo.music.ui.screens.settings.SettingsListRoute
+                    if (showAvatar) {
+                        Box(Modifier.fillMaxSize()) {
+                            com.kiyo.music.ui.component.ProfileAvatarButton(
+                                onClick = { navController.navigateToTab(Screens.Settings.route) },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .windowInsetsPadding(WindowInsets.stableStatusBars)
+                                    .padding(end = 16.dp, top = 8.dp),
+                            )
+                        }
+                    }
+
                     // action feedback ("Added to Queue", "Undo"...) drops in over the sheets too
                     com.kiyo.music.ui.component.TopToastHost()
 

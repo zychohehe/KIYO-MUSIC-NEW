@@ -48,7 +48,7 @@ import com.kiyo.music.ui.screens.update.VersionRing
 import com.kiyo.music.ui.screens.update.openUrl
 
 import com.kiyo.music.core.updater.GithubProfileUrl
-import com.kiyo.music.core.updater.WhatsAppUrl
+import com.kiyo.music.core.updater.TikTokUrl
 
 // the title tucks up over her faded bottom by this much, like the mock
 private val TitleOverlap = 18.dp
@@ -128,7 +128,7 @@ private fun DonateSheetContent() {
                     icon = R.drawable.link,
                     iconSize = 16.dp,
                     iconTint = Color.Black,
-                    onClick = { context.openUrl(WhatsAppUrl) },
+                    onClick = { context.openUrl(TikTokUrl) },
                 )
                 DonateLinkRow(
                     title = stringResource(R.string.donate_github),

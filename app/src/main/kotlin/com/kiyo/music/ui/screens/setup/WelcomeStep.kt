@@ -116,7 +116,7 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
                 .graphicsLayer { alpha = enter.value * (1f - leave) }
                 .background(
                     Brush.radialGradient(
-                        listOf(Color(0x385B3FD0), Color(0x1A7F6CFF), Color.Transparent),
+                        listOf(Color(0x2E6C8CA8), Color(0x146C8CA8), Color.Transparent),
                     ),
                 ),
         )
@@ -163,8 +163,8 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(Color.White.copy(alpha = 0.08f))
-                    .border(1.dp, Color.White.copy(alpha = 0.16f), RoundedCornerShape(50))
+                    .background(Color.White.copy(alpha = 0.06f))
+                    .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(50))
                     .padding(horizontal = (12f * u).dp, vertical = (5f * u).dp),
             ) {
                 Text(
@@ -181,7 +181,7 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
                 text = stringResource(R.string.app_name),
                 style = TextStyle(
                     brush = Brush.linearGradient(
-                        listOf(Color.White, Color(0xFFD9C9FF), Color(0xFF9DB8FF)),
+                        listOf(Color(0xFFFFFFFF), Color(0xFFE4E9F0), Color(0xFFA9BCD0)),
                     ),
                     fontSize = (64f * u).sp,
                     lineHeight = (66f * u).sp,
@@ -196,7 +196,7 @@ fun WelcomeStep(isHiding: Boolean, onNext: () -> Unit) {
                     .width((56f * u).dp)
                     .height((4f * u).dp)
                     .clip(RoundedCornerShape(50))
-                    .background(Brush.horizontalGradient(listOf(Color(0xFFB59CFF), Color(0xFF7FA6FF)))),
+                    .background(Brush.horizontalGradient(listOf(Color(0xFFA9BCD0), Color(0xFF6C8CA8)))),
             )
         }
 

@@ -116,7 +116,6 @@ private val LocalizedSettingsTitles = mapOf(
     "Hi-res output" to R.string.playback_hires,
     "Hi-fi resampler" to R.string.playback_hifi,
     "Audio Lab" to R.string.settings_audio_lab_category,
-    "Modules" to R.string.settings_modules_category,
     "Storage" to R.string.storage,
     "App behaviour" to R.string.settings_app_behaviour,
     "Playback" to R.string.settings_playback_category,
@@ -142,7 +141,6 @@ private val LocalizedSettingsPages = mapOf(
     "Customisation" to R.string.settings_customisation_category,
     "Storage" to R.string.storage,
     "Audio Lab" to R.string.settings_audio_lab_category,
-    "Modules" to R.string.settings_modules_category,
     "Integrations" to R.string.integrations,
 )
 
@@ -232,9 +230,6 @@ private val SettingsIndex = listOf(
     SettingsEntry("Dolby Atmos", "Audio Lab", "audio_fx", "atmos spatial surround 3d immersive"),
     SettingsEntry("Playback speed", "Audio Lab", "audio_fx", "tempo pitch slowed nightcore preserve pitch"),
     SettingsEntry("Exponential volume", "Audio Lab", "audio_fx", "volume curve logarithmic limit"),
-    SettingsEntry("Modules", "Modules", "modules", "apple music source module plugin extension stream subscription"),
-    SettingsEntry("Apple Music", "Modules", "module/applemusic", "apple music itunes subscription stream aac"),
-    SettingsEntry("Monochrome", "Modules", "module/monochrome", "monochrome lossless flac hi-res tidal"),
     SettingsEntry("Provider order", "Audio Lab", "audio_quality", "source order apple music monochrome youtube priority"),
     SettingsEntry("YouTube Music", "Audio Lab", "audio_quality", "youtube turn off disable provider only monochrome apple music"),
 
@@ -496,16 +491,6 @@ fun KiyoSettingsScreen(navController: NavController, pane: SettingsPane? = null)
                             selected = false,
                             onClick = { open(com.kiyo.music.ui.screens.devices.DeviceIntegrationRoute) }
                         )
-
-                        CategoryBubble(
-                            title = stringResource(R.string.settings_modules_category),
-                            iconRes = R.drawable.library_add,
-                            selected = selected == "modules",
-                            onClick = { open("modules") }
-                        )
-
-                        // pages the modules that are on bring to settings, right under modules
-                        com.kiyo.music.ui.screens.settings.modules.ModuleSettingsPages(open = open, selected = selected)
                     }
                 }
             }

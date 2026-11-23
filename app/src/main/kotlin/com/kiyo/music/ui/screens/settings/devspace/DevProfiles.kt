@@ -52,7 +52,8 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.transformations
 import com.kiyo.music.R
-import com.kiyo.music.core.updater.WhatsAppUrl
+import com.kiyo.music.core.updater.TikTokHandle
+import com.kiyo.music.core.updater.TikTokUrl
 import com.kiyo.music.core.updater.GithubProfileUrl
 import com.kiyo.music.ui.component.LocalZoomOutOverlayState
 import com.kiyo.music.ui.component.pressBounce
@@ -80,7 +81,7 @@ internal val DevPeople = listOf(
         avatar = R.drawable.dev_zycho,
         socials = listOf(
             DevSocial("GitHub", GithubProfileUrl, "@zychohehe", R.drawable.github),
-            DevSocial("WhatsApp Channel", WhatsAppUrl, "Updates and news", null),
+            DevSocial("TikTok", TikTokUrl, "@$TikTokHandle", R.drawable.tiktok),
         ).filter { it.url.isNotBlank() },
     ),
 )

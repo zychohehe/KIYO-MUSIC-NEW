@@ -170,7 +170,7 @@ import com.kiyo.music.ui.screens.recap.recapBarcodeCaption
 import com.kiyo.music.ui.screens.recap.recapBarcodePayload
 import com.kiyo.music.ui.screens.recap.recapDots
 import com.kiyo.music.ui.screens.recap.rememberRecapTime
-import com.kiyo.music.core.updater.WhatsAppUrl
+import com.kiyo.music.core.updater.TikTokUrl
 import com.kiyo.music.ui.screens.settings.devspace.DevAvatar
 import com.kiyo.music.ui.screens.settings.devspace.DevPeople
 import com.kiyo.music.ui.screens.settings.devspace.openDevUrl
@@ -639,7 +639,7 @@ fun ProfileScreen(navController: NavController) {
                         ProfileIntegrations(navController)
                         Spacer(Modifier.height(32.dp))
                         DeveloperCard(onClick = { navController.navigate("developer_space") })
-                        DiscordCard(onClick = { context.openDevUrl(WhatsAppUrl) })
+                        DiscordCard(onClick = { context.openDevUrl(TikTokUrl) })
                         Spacer(Modifier.height(32.dp))
                         ProfileSectionTitle(stringResource(R.string.profile_settings_title))
                         OpenSettingsRow(onClick = { navController.navigate("kiyo_settings") })
@@ -1043,7 +1043,8 @@ private fun DeveloperCard(onClick: () -> Unit) {
 
 @Composable
 private fun DiscordCard(onClick: () -> Unit) {
-    val face = 30.dp
+    // the follow card: TikTok mark, a line of why, and a Follow pill
+    val face = 34.dp
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -1052,23 +1053,43 @@ private fun DiscordCard(onClick: () -> Unit) {
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
-        Image(
-            painter = rememberResourcePainter(R.drawable.wa_channel),
-            contentDescription = stringResource(R.string.profile_discord_cd),
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(face)
-                .clip(CircleShape)
-                .background(Color.White),
-        )
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(face).clip(CircleShape).background(Color(0xFF1A1D21)),
+        ) {
+            Image(
+                painter = rememberResourcePainter(R.drawable.tiktok),
+                contentDescription = stringResource(R.string.profile_discord_cd),
+                modifier = Modifier.size(20.dp),
+            )
+        }
         Spacer(Modifier.width(12.dp))
-        Text(
-            stringResource(R.string.profile_join_discord),
-            style = TextStyle(fontFamily = InterFontFamily, fontWeight = FontWeight.Bold, fontSize = 15.sp, letterSpacing = (-0.6).sp, color = Color.White),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
+        Column(Modifier.weight(1f)) {
+            Text(
+                stringResource(R.string.profile_join_discord),
+                style = TextStyle(fontFamily = InterFontFamily, fontWeight = FontWeight.Bold, fontSize = 15.sp, letterSpacing = (-0.4).sp, color = Color.White),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                stringResource(R.string.profile_follow_desc),
+                style = TextStyle(fontFamily = InterFontFamily, fontWeight = FontWeight.Medium, fontSize = 12.sp, color = Color.White.copy(alpha = 0.6f)),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Spacer(Modifier.width(10.dp))
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(50))
+                .background(Color.White)
+                .padding(horizontal = 14.dp, vertical = 7.dp),
+        ) {
+            Text(
+                stringResource(R.string.profile_follow_button),
+                style = TextStyle(fontFamily = InterFontFamily, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color.Black),
+            )
+        }
     }
 }
 

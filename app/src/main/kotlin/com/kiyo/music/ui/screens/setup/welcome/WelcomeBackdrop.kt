@@ -40,9 +40,9 @@ import kotlinx.coroutines.withContext
 import kotlin.math.ceil
 
 internal object WelcomeColors {
-    val Page = Color(0xFF1C1C1C)
-    val Dot = Color(0xFF2F2F2F)
-    val Outline = Color(0xFF343434)
+    val Page = Color(0xFF0F1114)
+    val Dot = Color(0xFF22262B)
+    val Outline = Color(0xFF272C33)
 }
 
 // the dot grid, drawn as one batch of points that never changes

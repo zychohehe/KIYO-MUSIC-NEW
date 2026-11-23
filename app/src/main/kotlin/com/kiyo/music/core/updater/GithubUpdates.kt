@@ -18,6 +18,8 @@ const val GithubRepo = "Kiyo-Music"
 const val GithubProfileUrl = "https://github.com/$GithubOwner"
 const val GithubRepoUrl = "https://github.com/$GithubOwner/$GithubRepo"
 // community channel (replaces the old Discord server)
+const val TikTokHandle = "a2unknowwn"
+const val TikTokUrl = "https://www.tiktok.com/@$TikTokHandle"
 const val WhatsAppUrl = "https://whatsapp.com/channel/0029Vb8gHJ7545uuF9Ox1I2z"
 
 private const val ReleasesApi =
