@@ -29,8 +29,8 @@ extensions.configure<ApplicationExtension> {
         targetSdk = 37
         // CI passes -PbuildNumber / -PversionCodeOverride so every automatic release is newer than the last
         // one (the in-app updater compares them); local builds keep the defaults
-        versionCode = (project.findProperty("versionCodeOverride") as String?)?.toIntOrNull() ?: 73
-        versionName = "5.5.0 build#${(project.findProperty("buildNumber") as String?)?.toIntOrNull() ?: 1280}"
+        versionCode = (project.findProperty("versionCodeOverride") as String?)?.toIntOrNull() ?: 74
+        versionName = "5.6.0 build#${(project.findProperty("buildNumber") as String?)?.toIntOrNull() ?: 1281}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

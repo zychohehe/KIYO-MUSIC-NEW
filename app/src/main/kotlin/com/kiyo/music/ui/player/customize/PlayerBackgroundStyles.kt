@@ -115,9 +115,9 @@ private fun SolidBackground(pureBlack: Boolean, modifier: Modifier = Modifier) {
 private fun DarkGradientBackground(modifier: Modifier = Modifier) {
     val brush = remember {
         Brush.verticalGradient(
-            0f to Color(0xFF2A2A2E),
-            0.55f to Color(0xFF1A1A1D),
-            1f to Color(0xFF0E0E10),
+            0f to Color(0xFF2E2224),
+            0.55f to Color(0xFF1B1517),
+            1f to Color(0xFF0E0A0B),
         )
     }
     Box(modifier = modifier.background(brush))

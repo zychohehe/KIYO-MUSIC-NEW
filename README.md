@@ -11,7 +11,7 @@
 **a sleek, modern music player for Android.**
 open source, packed with features, and it doesn't collect your data.
 
-<sub>version **5.5.0** · still in beta, so please expect a few bugs :)</sub>
+<sub>version **5.6.0** · still in beta, so please expect a few bugs :)</sub>
 
 <br/>
 
@@ -43,12 +43,24 @@ open source, packed with features, and it doesn't collect your data.
 
 <br/>
 
-[**Install**](#install) &nbsp;·&nbsp; [**What's new**](#whats-new-in-kiyo-550) &nbsp;·&nbsp; [**Features**](#features) &nbsp;·&nbsp; [**Preview**](#preview) &nbsp;·&nbsp; [**FAQ**](#faq) &nbsp;·&nbsp; [**Build**](#build-it-yourself)
+[**Install**](#install) &nbsp;·&nbsp; [**What's new**](#whats-new-in-kiyo-560) &nbsp;·&nbsp; [**Features**](#features) &nbsp;·&nbsp; [**Preview**](#preview) &nbsp;·&nbsp; [**FAQ**](#faq) &nbsp;·&nbsp; [**Build**](#build-it-yourself)
 
 </div>
 
 > [!WARNING]
 > Kiyo is still in beta, expect some bugs. Reporting them is super useful!
+
+---
+
+## What's new in Kiyo 5.6.0
+
+<sub>New look · Los Angeles</sub>
+
+- **Golden Hour design.** A new West Coast look: warm asphalt-black surfaces, a sunset coral accent, and pink, gold and palm-teal as supporting colours.
+- **Warmer text.** Cream white and warm grey text instead of cold grey, so lyrics and titles feel softer at night.
+- **Rounder shapes.** Cards, sheets and buttons use bigger corner radii.
+- **Warm backgrounds.** The search screen and the default player background follow the same warm palette.
+- **One place to tune it.** Every colour lives in `DesignTokens.kt`, so the whole look can be changed from one file.
 
 ---
 
