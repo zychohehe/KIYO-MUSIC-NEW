@@ -387,9 +387,6 @@ fun OnlineSearchResult(
             progressProvider = progressProvider,
             pureBlack = pureBlack,
             title = stringResource(R.string.search),
-            trailing = {
-                SearchAvatar(imageUrl = profilePicStr.ifBlank { null }, onClick = { navController.navigateToTab("settings") })
-            },
             below = {
                 SearchCategoryRow(
                     categories = SearchCategories.map { stringResource(it.first) },

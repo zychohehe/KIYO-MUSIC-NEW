@@ -114,11 +114,11 @@ constructor(
         // whose answer was nearly always thrown away.
         val (lastResort, regular) = providers.withIndex()
             .partition { it.value.name == YouTubeCaptionsLyricsProvider.name }
-        var candidates = fetchIndexed(mediaMetadata, regular)
+        var candidates = fetchIndexedFast(mediaMetadata, regular)
         // picking parses every candidate's lyrics, so it runs off the main thread the player calls from
         var best = withContext(Dispatchers.Default) { pickBest(mediaMetadata, candidates, providers.size) }
         if (best == null && lastResort.isNotEmpty()) {
-            candidates = candidates + fetchIndexed(mediaMetadata, lastResort)
+            candidates = candidates + fetchIndexedFast(mediaMetadata, lastResort)
             best = withContext(Dispatchers.Default) { pickBest(mediaMetadata, candidates, providers.size) }
         }
         if (best == null) return LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
@@ -166,6 +166,54 @@ constructor(
         providers.map { (order, provider) ->
             async(Dispatchers.Default) { fetchCandidate(mediaMetadata, provider, order) }
         }.awaitAll().filterNotNull()
+    }
+
+    /**
+     * Like [fetchIndexed], but it does not wait for the slowest provider. All providers are still
+     * asked at once; once the first usable lyrics arrive, the rest only get a short grace time to
+     * answer before the best of what is in hand is picked. Before, every song waited for the
+     * slowest provider (up to [ProviderTimeoutMs]), so lyrics showed up seconds late.
+     * Word-synced lyrics are already the best kind, so they get the shorter grace; with only
+     * line-synced lyrics in hand it waits a little longer for a better (word-synced or duet) copy.
+     */
+    private suspend fun fetchIndexedFast(
+        mediaMetadata: MediaMetadata,
+        providers: List<IndexedValue<LyricsProvider>>,
+    ): List<ProviderCandidate> {
+        if (providers.isEmpty()) return emptyList()
+        return coroutineScope {
+            val answers = kotlinx.coroutines.channels.Channel<ProviderCandidate?>(providers.size)
+            val jobs = providers.map { (order, provider) ->
+                async(Dispatchers.Default) { answers.trySend(fetchCandidate(mediaMetadata, provider, order)) }
+            }
+            val found = mutableListOf<ProviderCandidate>()
+            var deadline = Long.MAX_VALUE
+            var received = 0
+            while (received < providers.size) {
+                val wait = if (deadline == Long.MAX_VALUE) Long.MAX_VALUE
+                else deadline - android.os.SystemClock.elapsedRealtime()
+                if (wait <= 0L) break
+                val next = if (wait == Long.MAX_VALUE) {
+                    answers.receive()
+                } else {
+                    var got: ProviderCandidate? = null
+                    val arrived = withTimeoutOrNull(wait) { got = answers.receive(); true } ?: false
+                    if (!arrived) break
+                    got
+                }
+                received++
+                if (next != null) {
+                    found += next
+                    val grace = if (found.any { it.sync == LyricsUtils.SyncKind.WORD }) WordGraceMs else LineGraceMs
+                    val candidateDeadline = android.os.SystemClock.elapsedRealtime() + grace
+                    // the first usable answer starts the clock; a word-synced one can only shorten it
+                    deadline = if (deadline == Long.MAX_VALUE) candidateDeadline else minOf(deadline, candidateDeadline)
+                }
+            }
+            jobs.forEach { it.cancel() }
+            answers.close()
+            found
+        }
     }
 
     /** The enabled providers, in the user's preferred order. */
@@ -563,6 +611,12 @@ constructor(
          * days, so songs like duets lost their left/right layout to an untagged copy.
          */
         private const val ProviderTimeoutMs = 35_000L
+
+        /** After word-synced lyrics arrive, how long the other providers still get to answer. */
+        private const val WordGraceMs = 1_200L
+
+        /** After only line-synced lyrics arrive, a bit longer, in case a word-synced or duet copy is close behind. */
+        private const val LineGraceMs = 3_500L
 
         /**
          * Providers whose answer comes from this exact video rather than a title search, so their

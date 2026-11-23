@@ -3,7 +3,13 @@
 package com.kiyo.music.ui.player
 
 import android.view.animation.AnimationUtils
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.withFrameNanos
+import com.kiyo.music.LocalPlayerConnection
+import kotlinx.coroutines.delay
 import androidx.media3.common.Player
 import kotlin.math.abs
 import kotlin.math.exp
@@ -71,5 +77,25 @@ class PlaybackClock(
             return reported.toDouble()
         }
         return reported + (now - reportedAtMs).coerceAtMost(CarryMaxMs) * speed.toDouble()
+    }
+}
+
+// works out a value from the playback position on every frame while playing (about every 120ms when paused), so lyrics follow the frame clock instead of the 66ms poller; the state only changes, and so only recomposes, when the value does
+@Composable
+fun <T> rememberFramePosition(
+    key: Any?,
+    positionProvider: () -> Long,
+    compute: (Long) -> T,
+): State<T> {
+    val connection = LocalPlayerConnection.current
+    return produceState(compute(positionProvider()), key, positionProvider) {
+        while (true) {
+            if (connection?.player?.isPlaying == true) {
+                withFrameNanos { value = compute(positionProvider()) }
+            } else {
+                value = compute(positionProvider())
+                delay(120)
+            }
+        }
     }
 }

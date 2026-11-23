@@ -146,12 +146,6 @@ fun LibraryHomeScreen(
             glassState = glassState,
             collapseProvider = { collapse.value },
             pureBlack = pureBlack,
-            trailing = {
-                SearchAvatar(
-                    imageUrl = profilePicStr.ifBlank { null },
-                    onClick = { navController.navigateToTab("settings") },
-                )
-            },
             bottomInset = bottomInset,
         ) {
             item(key = "tabs") {

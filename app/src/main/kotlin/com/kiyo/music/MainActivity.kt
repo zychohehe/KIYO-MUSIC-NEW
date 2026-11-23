@@ -1386,27 +1386,8 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    // the profile avatar on every page but Home (Home draws its own) and Settings (its own header)
-                    val showAvatar = !playerOpen && !com.kiyo.music.ui.component.ProfileAvatarGate.suppressed && currentRoute != null &&
-                        currentRoute != Screens.Home.route &&
-                        currentRoute != Screens.Settings.route &&
-                        currentRoute != com.kiyo.music.ui.screens.settings.SettingsListRoute &&
-                        // these pages already draw their own avatar in their header, a second one would sit on top of it
-                        currentRoute != Screens.Search.route &&
-                        currentRoute != Screens.Library.route &&
-                        currentRoute?.startsWith("search/") != true &&
-                        currentRoute?.startsWith("artist/") != true
-                    if (showAvatar) {
-                        Box(Modifier.fillMaxSize()) {
-                            com.kiyo.music.ui.component.ProfileAvatarButton(
-                                onClick = { navController.navigateToTab(Screens.Settings.route) },
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .windowInsetsPadding(WindowInsets.stableStatusBars)
-                                    .padding(end = 16.dp, top = 8.dp),
-                            )
-                        }
-                    }
+                    // the profile picture is only shown on Home (which draws its own in its header);
+                    // the app-wide avatar that used to sit on every other page is gone on purpose
 
                     // action feedback ("Added to Queue", "Undo"...) drops in over the sheets too
                     com.kiyo.music.ui.component.TopToastHost()

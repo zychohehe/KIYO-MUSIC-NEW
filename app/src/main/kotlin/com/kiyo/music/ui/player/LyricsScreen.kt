@@ -248,8 +248,6 @@ fun LyricsScreen(
 
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val lyricsEntity by playerConnection.currentLyrics.collectAsState(initial = null)
-    val progress by playerConnection.progressState.collectAsState()
-    val lyricsOffsetMs by playerConnection.lyricsOffsetMs.collectAsState()
 
     // frame-accurate, so the sweep, the gap dots and backing vocals glide at the display's rate instead of stepping with the 66ms poller
     val positionProvider = remember(playerConnection) {
@@ -371,7 +369,7 @@ fun LyricsScreen(
     var followPlayback by remember { mutableStateOf(true) }
 
     // What the card is showing: the page's copy of it (a line, or the dots of a gap) is what the card grows into.
-    val cardSlot by remember(lines) { derivedStateOf { tickerSlot(lines, progress.position + lyricsOffsetMs) } }
+    val cardSlot by rememberFramePosition(lines, positionProvider) { tickerSlot(lines, it) }
     val cardLine by remember { derivedStateOf { if (cardSlot.kind == TickerSlot.LINE) cardSlot.index else -1 } }
     val cardGap by remember { derivedStateOf { if (cardSlot.kind == TickerSlot.GAP) cardSlot.index else NoCardGap } }
     // its row, read only inside layers so the card moving on doesn't recompose every row
@@ -509,9 +507,7 @@ fun LyricsScreen(
     }
 
     /** Which gap, if any, is happening right now. [NoInterlude] when a line is being sung. */
-    val activeInterlude by remember(lines, rows) {
-        derivedStateOf { activeInterludeOf(rows, progress.position + lyricsOffsetMs) }
-    }
+    val activeInterlude by rememberFramePosition(listOf(lines, rows), positionProvider) { activeInterludeOf(rows, it) }
 
     // Only honour {agent:v1}/{agent:v2} when the song actually has more than one voice. A solo
     // track whose provider tagged every line as v2 would otherwise render entirely right-aligned.

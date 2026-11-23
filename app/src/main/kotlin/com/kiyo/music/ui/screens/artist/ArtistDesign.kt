@@ -824,7 +824,6 @@ internal fun ArtistTopBar(
                         translationY = with(density) { 10.dp.toPx() } * (1f - m)
                     },
             )
-            SearchAvatar(imageUrl = profileImage, onClick = onProfileClick, size = 32.dp)
         }
     }
 }

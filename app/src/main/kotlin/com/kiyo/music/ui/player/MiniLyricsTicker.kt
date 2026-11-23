@@ -73,8 +73,6 @@ import com.kiyo.music.utils.rememberEnumPreference
 import com.kiyo.music.utils.rememberPreference
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.combine
 import kotlin.math.roundToInt
 import com.kiyo.music.ui.utils.AppMotion
 
@@ -218,11 +216,7 @@ internal fun MiniLyricsTicker(
     val positionProvider = remember(playerConnection) {
         PlaybackClock({ playerConnection.player }, { playerConnection.lyricsOffsetMs.value.toLong() })
     }
-    val slot by remember(lines, playerConnection) {
-        combine(playerConnection.progressState, playerConnection.lyricsOffsetMs) { progress, offsetMs ->
-            tickerSlot(lines, progress.position + offsetMs)
-        }.distinctUntilChanged()
-    }.collectAsState(initial = tickerSlot(lines, positionProvider()))
+    val slot by rememberFramePosition(lines, positionProvider) { tickerSlot(lines, it) }
 
     val (motionStyle) = rememberEnumPreference(LyricsMotionStyleKey, defaultValue = LyricsMotionStyle.MOTION)
     val waveEnabled = motionStyle.shaded

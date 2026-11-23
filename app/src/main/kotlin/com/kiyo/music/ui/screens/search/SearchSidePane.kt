@@ -154,9 +154,6 @@ fun SearchSidePane(
             progressProvider = { collapse.value },
             pureBlack = pureBlack,
             title = stringResource(R.string.search),
-            trailing = {
-                SearchAvatar(imageUrl = profilePicStr.ifBlank { null }, onClick = { navController.navigateToTab("settings") })
-            },
         ) {
             SearchField(
                 value = query,

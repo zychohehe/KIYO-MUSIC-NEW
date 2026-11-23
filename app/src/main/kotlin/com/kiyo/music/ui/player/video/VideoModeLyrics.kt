@@ -30,6 +30,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.kiyo.music.ui.player.rememberFramePosition
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
@@ -102,8 +103,6 @@ import com.kiyo.music.utils.rememberPreference
 import com.kiyo.music.viewmodels.LyricsScreenViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlin.math.abs
 
@@ -254,16 +253,8 @@ internal fun VideoRegularLyrics(
     val lines = lyrics.lines
     val usable = lines.isNotEmpty() && !lyrics.unsynced
     // only the slot (which line, or a gap) comes from the position, so this recomposes once a line
-    val slot by remember(lines, connection) {
-        combine(connection.progressState, connection.lyricsOffsetMs) { progress, offsetMs ->
-            tickerSlot(lines, progress.position + offsetMs)
-        }.distinctUntilChanged()
-    }.collectAsState(initial = tickerSlot(lines, positionProvider()))
-    val anchor by remember(lines, connection) {
-        combine(connection.progressState, connection.lyricsOffsetMs) { progress, offsetMs ->
-            lyricAnchorIndex(lines, progress.position + offsetMs)
-        }.distinctUntilChanged()
-    }.collectAsState(initial = -1)
+    val slot by rememberFramePosition(lines, positionProvider) { tickerSlot(lines, it) }
+    val anchor by rememberFramePosition(lines, positionProvider) { lyricAnchorIndex(lines, it) }
     val useAgents = remember(lines) { usesAgentAlignment(lines) }
 
     // the line flies only into the row the lyrics pane rests on; anything else (a gap, the queue) just fades across
@@ -539,13 +530,11 @@ internal fun FollowingLyrics(
             return@Box
         }
 
-        val progress by connection.progressState.collectAsState()
-        val offsetMs by connection.lyricsOffsetMs.collectAsState()
-        val currentIndex by remember(lines, unsynced) {
-            derivedStateOf { if (unsynced) -1 else LyricsUtils.findCurrentLineIndex(lines, progress.position + offsetMs) }
+        val currentIndex by rememberFramePosition(listOf(lines, unsynced), positionProvider) {
+            if (unsynced) -1 else LyricsUtils.findCurrentLineIndex(lines, it)
         }
-        val anchorIndex by remember(lines, unsynced) {
-            derivedStateOf { if (unsynced) -1 else lyricAnchorIndex(lines, progress.position + offsetMs) }
+        val anchorIndex by rememberFramePosition(listOf(lines, unsynced), positionProvider) {
+            if (unsynced) -1 else lyricAnchorIndex(lines, it)
         }
         val rows = remember(lines) { buildLyricRows(lines) }
         val rowOfLine = remember(rows, lines) {
@@ -553,9 +542,7 @@ internal fun FollowingLyrics(
                 rows.forEachIndexed { rowIndex, row -> if (row is LyricRow.Line) map[row.index] = rowIndex }
             }
         }
-        val activeInterlude by remember(lines, rows) {
-            derivedStateOf { activeInterludeOf(rows, progress.position + offsetMs) }
-        }
+        val activeInterlude by rememberFramePosition(listOf(lines, rows), positionProvider) { activeInterludeOf(rows, it) }
         val useAgents = remember(lines) { usesAgentAlignment(lines) }
         val anchorRow by remember(rowOfLine) { derivedStateOf { rowOfLine.getOrNull(anchorIndex) ?: -1 } }
 
